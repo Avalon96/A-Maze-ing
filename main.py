@@ -10,7 +10,7 @@ from config import (
 def main() -> None:
     try:
         config_file_path: str = validate_parameters()
-        config: dict[str, str | int | tuple[int, int]] = \
+        config: dict[str, str | int | tuple[int, int] | bool] = \
             read_config_file(config_file_path)
         validate_config(config)
     except (ValueError, FileNotFoundError, OSError) as e:

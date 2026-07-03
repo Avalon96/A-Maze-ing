@@ -13,7 +13,41 @@ MANDATORY_CONFIG_KEYS: dict[tuple[str, ...], type] = {
 
 
 def read_config_file(file_path: str) -> dict[str, str | int | tuple[int, int]]:
-    config: dict[str, str | int | tuple[int, int]] = {}
+    """Read a config file and return parsed configuration parameters.
+
+    The file is expected to contain lines in the format "KEY=VALUE".
+    Blank lines and comments (lines starting with "#") are ignored.
+    Values are parsed based on the key group:
+
+    * Integers for `CONFIG_KEYS_INT`
+    * Tuples of two integers `(x, y)` for `CONFIG_KEYS_COORD`
+    * Booleans for `CONFIG_KEYS_BOOL`
+    * Strings for all other keys
+
+    Parameters
+    ----------
+    file_path : str
+        Path to the configuration file.
+
+    Returns
+    -------
+    dict[str, str | int | tuple[int, int] | bool]
+        Mapping of configuration keys to their parsed values.
+
+    Raises
+    ------
+    FileNotFoundError
+        If the config file does not exist.
+    PermissionError
+        If the config file cannot be read due to insufficient permissions.
+    OSError
+        If the config file cannot be opened or read for any other
+        I/O-related reason.
+    ValueError
+        If a line is malformed (missing "=") or a value cannot be
+        converted to its expected type.
+    """
+    config: dict[str, str | int | tuple[int, int] | bool] = {}
     try:
         with open(file_path, 'r') as file:
             for line_num, line in enumerate(file, start=1):
@@ -49,7 +83,27 @@ def read_config_file(file_path: str) -> dict[str, str | int | tuple[int, int]]:
     return config
 
 
-def validate_config(config: dict[str, str | int | tuple[int, int]]) -> None:
+def validate_config(
+        config: dict[str, str | int | tuple[int, int] | bool]
+        ) -> None:
+    """Validate that all mandatory configuration keys are present
+    and typed correctly.
+
+    Checks every key listed in `MANDATORY_CONFIG_KEYS` against the parsed
+    config dictionary, confirming both presence and expected type.
+
+    Parameters
+    ----------
+    config : dict[str, str | int | tuple[int, int] | bool]
+        The parsed configuration dictionary, as returned by
+        `read_config_file`.
+
+    Raises
+    ------
+    ValueError
+        If a mandatory key is missing, or if its value does not match
+        the expected type for that key.
+    """
     for key_group, expected_type in MANDATORY_CONFIG_KEYS.items():
         for key in key_group:
 
@@ -70,7 +124,19 @@ def validate_config(config: dict[str, str | int | tuple[int, int]]) -> None:
 
 
 def validate_parameters() -> str:
+    """Validate and extract the config file path from command-line arguments.
 
+    Returns
+    -------
+    str
+        The path to the configuration file, taken from `sys.argv[1]`.
+
+    Raises
+    ------
+    ValueError
+        If the script was not invoked with exactly one command-line
+        argument.
+    """
     # DEBUG
     from debug import PRINT_DEBUG
     l: int = 2 + PRINT_DEBUG
