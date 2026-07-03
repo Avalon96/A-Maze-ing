@@ -13,24 +13,39 @@ MANDATORY_CONFIG_KEYS: dict[tuple[str, ...], type] = {
 
 
 def read_config_file(file_path: str) -> dict[str, str | int | tuple[int, int]]:
-    with open(file_path, 'r') as file:
-        config: dict[str, str | int | tuple[int, int]] = {}
-        for line in file:
-            line = line.strip()
-            if not line or line.startswith('#'):
-                continue
-            key: str = line.split('=')[0].strip()
-            value: str = line.split('=')[1].strip()
-            if key in CONFIG_KEYS_INT:
-                config[key] = int(value)
-            elif key in CONFIG_KEYS_COORD:
-                x: str = value.split(',')[0].strip()
-                y: str = value.split(',')[1].strip()
-                config[key] = (int(x), int(y))
-            elif key in CONFIG_KEYS_BOOL:
-                config[key] = value.lower() == 'true'
-            else:
-                config[key] = value
+    config: dict[str, str | int | tuple[int, int]] = {}
+    try:
+        with open(file_path, 'r') as file:
+            for line_num, line in enumerate(file, start=1):
+                line = line.strip()
+                if not line or line.startswith('#'):
+                    continue
+                if '=' not in line:
+                    raise ValueError(
+                        f"Malformed line {line_num} in {file_path}: {line}"
+                    )
+                key, _, raw_value = line.partition('=')
+                key = key.strip()
+                value = raw_value.strip()
+                try:
+                    if key in CONFIG_KEYS_INT:
+                        config[key] = int(value)
+                    elif key in CONFIG_KEYS_COORD:
+                        x: str = value.split(',')[0].strip()
+                        y: str = value.split(',')[1].strip()
+                        config[key] = (int(x), int(y))
+                    elif key in CONFIG_KEYS_BOOL:
+                        config[key] = value.lower() == 'true'
+                    else:
+                        config[key] = value
+                except ValueError as e:
+                    raise ValueError(
+                        f"Invalid value for {key} on line {line_num}: {value}"
+                    ) from e
+    except FileNotFoundError:
+        raise FileNotFoundError(f"Config file not found:{file_path}") from None
+    except OSError as e:
+        raise OSError(f"Could not read config file {file_path}: {e}") from e
     return config
 
 
@@ -55,12 +70,12 @@ def validate_config(config: dict[str, str | int | tuple[int, int]]) -> None:
 
 
 def validate_parameters() -> str:
-    if len(sys.argv) != 2:
 
-        # DEBUG
-        from debug import PRINT_DEBUG
-        if not PRINT_DEBUG:
-            # DEBUG END
+    # DEBUG
+    from debug import PRINT_DEBUG
+    l: int = 2 + PRINT_DEBUG
+    # DEBUG END
 
-            raise ValueError("Usage: python main.py <config_file_path>")
+    if len(sys.argv) != l:
+        raise ValueError("Usage: python main.py <config_file_path>")
     return sys.argv[1]
