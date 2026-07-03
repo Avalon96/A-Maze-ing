@@ -7,10 +7,16 @@ from config import (
 
 def main() -> None:
     config_file_path: str = validate_parameters()
-    config: dict[str, str | int] = read_config_file(config_file_path)
+    config: dict[str, str | int | tuple[int, int]] = \
+        read_config_file(config_file_path)
     validate_config(config)
-    # for key, value in config.items():
-    #     print(f"{key}: {value}")
+
+    # DEBUG
+    from debug import PRINT_DEBUG
+    if PRINT_DEBUG:
+        for key, value in config.items():
+            print(f"main: {key}: {value}")
+    # DEBUG END
 
 
 if __name__ == "__main__":
