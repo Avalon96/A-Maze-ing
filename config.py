@@ -1,18 +1,20 @@
 import sys
 
-CONFIG_KEYS_INT: tuple[str, str] = ("WIDTH", "HEIGHT")
+CONFIG_KEYS_INT: tuple[str, str, str] = ("WIDTH", "HEIGHT", "SEED")
 CONFIG_KEYS_COORD: tuple[str, str] = ("ENTRY", "EXIT")
 CONFIG_KEYS_STR: tuple[str] = ("OUTPUT_FILE",)
 CONFIG_KEYS_BOOL: tuple[str] = ("PERFECT",)
 MANDATORY_CONFIG_KEYS: dict[tuple[str, ...], type] = {
-    CONFIG_KEYS_INT: int,
+    ("WIDTH", "HEIGHT"): int,
     CONFIG_KEYS_COORD: tuple,
     CONFIG_KEYS_STR: str,
     CONFIG_KEYS_BOOL: bool
 }
 
 
-def read_config_file(file_path: str) -> dict[str, str | int | tuple[int, int]]:
+def read_config_file(
+        file_path: str
+        ) -> dict[str, str | int | tuple[int, int] | bool]:
     """Read a config file and return parsed configuration parameters.
 
     The file is expected to contain lines in the format "KEY=VALUE".
@@ -51,6 +53,13 @@ def read_config_file(file_path: str) -> dict[str, str | int | tuple[int, int]]:
     try:
         with open(file_path, 'r') as file:
             for line_num, line in enumerate(file, start=1):
+
+                # DEBUG
+                from debug import PRINT_DEBUG
+                if PRINT_DEBUG:
+                    print(f"read_config_file: line {line_num}: {line.strip()}")
+                # DEBUG END
+
                 line = line.strip()
                 if not line or line.startswith('#'):
                     continue
@@ -139,9 +148,9 @@ def validate_parameters() -> str:
     """
     # DEBUG
     from debug import PRINT_DEBUG
-    l: int = 2 + PRINT_DEBUG
+    argc: int = 2 + PRINT_DEBUG
     # DEBUG END
 
-    if len(sys.argv) != l:
+    if len(sys.argv) != argc:
         raise ValueError("Usage: python main.py <config_file_path>")
     return sys.argv[1]

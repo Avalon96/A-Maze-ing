@@ -1,5 +1,8 @@
 # Windows
 
+# Delete later
+# $(PYTHON) output_validator.py maze.txt
+
 PYTHON = python
 # PYTHON = python3
 SRC = main.py
@@ -19,6 +22,7 @@ install:
 
 run:
 	$(PYTHON) $(SRC) $(CONFIG)
+	$(PYTHON) output_validator.py maze.txt
 
 debug:
 	$(PYTHON) -m pdb $(SRC) $(CONFIG)
