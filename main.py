@@ -5,7 +5,20 @@ from config import (
     validate_config,
     validate_parameters
 )
-from generate_maze import generate_maze
+from maze_generator import MazeGenerator, MazeGenerationError
+
+
+def build_generator(
+        config: dict[str, str | int | tuple[int, int] | bool]
+        ) -> MazeGenerator:
+    return MazeGenerator(
+        width=int(config["WIDTH"]),
+        height=int(config["HEIGHT"]),
+        entry=config["ENTRY"],
+        exit=config["EXIT"],
+        seed=int(config["SEED"]) if "SEED" in config else None,
+        perfect=bool(config["PERFECT"]),
+    )
 
 
 def main() -> None:
@@ -14,9 +27,11 @@ def main() -> None:
         config: dict[str, str | int | tuple[int, int] | bool] = \
             read_config_file(config_file_path)
         validate_config(config)
-        generate_maze(config)
 
-    except (ValueError, FileNotFoundError, OSError) as e:
+        maze: MazeGenerator = build_generator(config)
+        maze.generate()
+        maze.save(config["OUTPUT_FILE"])
+    except (ValueError, FileNotFoundError, OSError, MazeGenerationError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
