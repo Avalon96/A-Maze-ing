@@ -382,10 +382,10 @@ class MazeGenerator:
             visited.add(neighbour)
             stack.append(neighbour)
 
-        # if visited != allowed_cells:
-        #     raise MazeGenerationError(
-        #         "42 pattern disconnects the maze at the chosen size"
-        #     )
+        if visited != allowed_cells:
+            raise MazeGenerationError(
+                "42 pattern disconnects the maze at the chosen size"
+            )
 
         for blocked_x, blocked_y in blocked_cells:
             grid[blocked_y][blocked_x] = 0xF
