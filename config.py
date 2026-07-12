@@ -74,9 +74,10 @@ def read_config_file(
                     if key in CONFIG_KEYS_INT:
                         config[key] = int(value)
                     elif key in CONFIG_KEYS_COORD:
-                        x: str = value.split(',')[0].strip()
-                        y: str = value.split(',')[1].strip()
-                        config[key] = (int(x), int(y))
+                        parts = value.split(',')
+                        if len(parts) != 2:
+                            raise ValueError
+                        config[key] = (int(parts[0].strip()), int(parts[1].strip()))
                     elif key in CONFIG_KEYS_BOOL:
                         config[key] = value.lower() == 'true'
                     else:
