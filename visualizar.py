@@ -1,17 +1,29 @@
 from maze_generator import MazeGenerator
 
-
 def draw(maze: MazeGenerator) -> None:
     grid = maze.grid
     for y in range(len(grid)):
         for x in range(len(grid[y])):
             cell = grid[y][x]
-            if cell & 2:
+            print("+", end="")
+            if cell & 1:
+                print("--", end="")
+            else:
+                print("  ", end="")
+        print("+")
+
+        for x in range(len(grid[y])):
+            cell = grid[y][x]
+            if cell & 8:
                 print("|", end="")
             else:
-                print(" ", end ="")
-            
-        print()
+                print(" ", end="")
+            print("  ", end="")
+        print("|")
+
+    for x in range(len(grid[0])):
+        print("+--", end="")
+    print("+")                  
         
 
 
