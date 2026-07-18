@@ -2,6 +2,9 @@ from maze_generator import MazeGenerator
 
 def draw(maze: MazeGenerator) -> None:
     grid = maze.grid
+    entry = maze.entry
+    cell_exit = maze.exit
+
     for y in range(len(grid)):
         for x in range(len(grid[y])):
             cell = grid[y][x]
@@ -18,13 +21,17 @@ def draw(maze: MazeGenerator) -> None:
                 print("|", end="")
             else:
                 print(" ", end="")
-            print("  ", end="")
+
+            if (x, y) == entry:
+                print("E ", end="")
+            elif (x, y) == cell_exit:
+                print("X ", end="")
+            else:
+                print("  ", end="")
         print("|")
 
     for x in range(len(grid[0])):
-        print("+--", end="")
-    print("+")                  
-        
+        print("+--", end="")    
 
 
 if __name__ == "__main__":
