@@ -43,8 +43,33 @@ def draw(maze: MazeGenerator) -> None:
     for x in range(len(grid[0])):
         print("+--", end="")    
 
+def preference(maze: MazeGenerator) -> None:
+    while True:
+        draw(maze)
+
+        print("=== A-Maze-ing ===")
+        print("1. Re-generate a new maze")
+        print("2. Show / Hide the shortest path")
+        print("3. Rotate the wall colours")
+        print("4. Quit")
+
+        choice = input("Choice? (1-4): ")
+
+        if choice == "1":
+            maze = MazeGenerator(maze.width, maze.height, entry = maze.entry, exit = maze.exit)
+            maze.generate()
+        elif choice == "2":
+            print()
+        elif choice == "3":
+            print()
+        elif choice == "4":
+            print()
+            break
+        else:
+            print("You entered incorrect information")
+
 
 if __name__ == "__main__":
     m = MazeGenerator(20, 15, entry=(0, 0), exit=(19, 14), seed=42)
     m.generate()
-    draw(m)
+    preference(m)
