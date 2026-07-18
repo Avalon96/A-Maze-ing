@@ -1,15 +1,17 @@
 from maze_generator import MazeGenerator
 
-def draw(maze: MazeGenerator) -> None:
+CLOSING = "\033[0m"
+RED = "\033[31m"
+BLUE = "\033[34m"
+GREEN = "\033[32m"
+
+
+def draw(maze: MazeGenerator, show_path: bool) -> None:
     grid = maze.grid
     entry = maze.entry
     cell_exit = maze.exit
     solution_path = maze.solution_coords()
     cell_blocked = maze.blocked_cells
-    closing = "\033[m"
-    red = "\033[31m"
-    blue = "\033[34m"
-    green = "\033[32m"
 
     for y in range(len(grid)):
         for x in range(len(grid[y])):
@@ -29,23 +31,27 @@ def draw(maze: MazeGenerator) -> None:
                 print(" ", end="")
 
             if (x, y) == entry:
-                print(blue + "E " + closing, end="")
+                print(BLUE + "E " + CLOSING, end="")
             elif (x, y) == cell_exit:
-                print(blue + "X " + closing, end="")
-            elif (x, y) in solution_path:
-                print(red + "* " + closing,end="")
+                print(BLUE + "X " + CLOSING, end="")
+            elif show_path and (x, y) in solution_path:
+                print(RED + "* " + CLOSING, end="")
             elif (x, y) in cell_blocked:
-                print(green + "# " + closing, end="")
+                print(GREEN + "# " + CLOSING, end="")
             else:
                 print("  ", end="")
         print("|")
 
     for x in range(len(grid[0])):
-        print("+--", end="")    
+        print("+--", end="")
+    print("+")
+
 
 def preference(maze: MazeGenerator) -> None:
+    show_path = True
+
     while True:
-        draw(maze)
+        draw(maze, show_path)
 
         print("=== A-Maze-ing ===")
         print("1. Re-generate a new maze")
@@ -56,14 +62,14 @@ def preference(maze: MazeGenerator) -> None:
         choice = input("Choice? (1-4): ")
 
         if choice == "1":
-            maze = MazeGenerator(maze.width, maze.height, entry = maze.entry, exit = maze.exit)
+            maze = MazeGenerator(maze.width, maze.height,entry=maze.entry, exit=maze.exit,perfect=maze.perfect)
             maze.generate()
         elif choice == "2":
-            print()
+            show_path = not show_path
         elif choice == "3":
             print()
         elif choice == "4":
-            print()
+            print("")
             break
         else:
             print("You entered incorrect information")
