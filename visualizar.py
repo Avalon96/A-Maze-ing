@@ -5,6 +5,7 @@ def draw(maze: MazeGenerator) -> None:
     entry = maze.entry
     cell_exit = maze.exit
     solution_path = maze.solution_coords()
+    cell_blocked = maze.blocked_cells
 
     for y in range(len(grid)):
         for x in range(len(grid[y])):
@@ -29,6 +30,8 @@ def draw(maze: MazeGenerator) -> None:
                 print("X ", end="")
             elif (x, y) in solution_path:
                 print("* ",end="")
+            elif (x, y) in cell_blocked:
+                print("# ", end="")
             else:
                 print("  ", end="")
         print("|")
