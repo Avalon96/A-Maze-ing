@@ -3,8 +3,8 @@
 # Delete later
 # $(PYTHON) output_validator.py maze.txt
 
-PYTHON = python
-# PYTHON = python3
+ # PYTHON = python
+ PYTHON = python3
 SRC = a_maze_ing.py
 CONFIG = default_config.txt
 
@@ -29,6 +29,8 @@ debug:
 
 clean:
 	rm -rf $(CACHE)
+	# rmdir /s /q __pycache__
+	# rmdir /s /q .mypy_cache
 
 lint:
 	$(FLAKE8)

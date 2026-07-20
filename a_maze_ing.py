@@ -1,6 +1,6 @@
 import sys
 from typing import cast
-from visualizar import preference
+from visualizer import preference
 
 from config import (
     read_config_file,
