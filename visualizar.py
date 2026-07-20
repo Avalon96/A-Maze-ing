@@ -4,9 +4,15 @@ CLOSING = "\033[0m"
 RED = "\033[31m"
 BLUE = "\033[34m"
 GREEN = "\033[32m"
+YELLOW = "\033[33m"
+MAGENTA = "\033[35m"
+CYAN = "\033[36m"
+WHITE = "\033[37m"
+
+WALL_COLOURS = [WHITE, BLUE, YELLOW, MAGENTA, CYAN]
 
 
-def draw(maze: MazeGenerator, show_path: bool) -> None:
+def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
     grid = maze.grid
     entry = maze.entry
     cell_exit = maze.exit
@@ -16,19 +22,19 @@ def draw(maze: MazeGenerator, show_path: bool) -> None:
     for y in range(len(grid)):
         for x in range(len(grid[y])):
             cell = grid[y][x]
-            print("+", end="")
+            print(wall_colour + "+" + CLOSING , end="")
             if cell & 1:
-                print("--", end="")
+                print(wall_colour + "--" + CLOSING, end="")
             else:
                 print("  ", end="")
-        print("+")
+        print(wall_colour + "+" + CLOSING)
 
         for x in range(len(grid[y])):
             cell = grid[y][x]
             if cell & 8:
-                print("|", end="")
+                print(wall_colour + "|" + CLOSING, end="")
             else:
-                print(" ", end="")
+                print(wall_colour + " " + CLOSING, end="")
 
             if (x, y) == entry:
                 print(BLUE + "E " + CLOSING, end="")
@@ -43,15 +49,16 @@ def draw(maze: MazeGenerator, show_path: bool) -> None:
         print("|")
 
     for x in range(len(grid[0])):
-        print("+--", end="")
-    print("+")
+        print(wall_colour + "+--" + CLOSING, end="")
+    print(wall_colour + "+" + CLOSING)
 
 
 def preference(maze: MazeGenerator) -> None:
     show_path = True
+    colour_index = 0
 
     while True:
-        draw(maze, show_path)
+        draw(maze, show_path, WALL_COLOURS[colour_index])
 
         print("=== A-Maze-ing ===")
         print("1. Re-generate a new maze")
@@ -67,7 +74,7 @@ def preference(maze: MazeGenerator) -> None:
         elif choice == "2":
             show_path = not show_path
         elif choice == "3":
-            print()
+            colour_index = (colour_index + 1) % len(WALL_COLOURS)
         elif choice == "4":
             print("")
             break
