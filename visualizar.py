@@ -13,6 +13,22 @@ WALL_COLOURS = [WHITE, BLUE, YELLOW, MAGENTA, CYAN]
 
 
 def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
+    """Draw the maze on the terminal.
+
+    Every maze row takes two lines on screen: the first one draws the
+    north walls, the second one draws the west walls together with what
+    is inside each cell. The bottom border is added at the end. Entry,
+    exit, the path and the "42" pattern each get their own colour.
+
+    Parameters
+    ----------
+    maze : MazeGenerator
+        The maze we are drawing.
+    show_path : bool
+        True if the solution path should be visible.
+    wall_colour : str
+        The colour used for the walls.
+    """
     grid = maze.grid
     entry = maze.entry
     cell_exit = maze.exit
@@ -54,6 +70,18 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
 
 
 def preference(maze: MazeGenerator) -> None:
+    """Show the menu and keep asking the user what to do.
+
+    The maze is drawn first, then the menu appears. The user can ask
+    for a new maze, hide or show the path, change the wall colour, or
+    quit. Anything else just prints a warning and the menu comes back.
+
+    Parameters
+    ----------
+    maze : MazeGenerator
+        The maze we start with. If the user picks "1", a new one takes
+        its place with the same size and the same entry and exit.
+    """
     show_path = True
     colour_index = 0
 
