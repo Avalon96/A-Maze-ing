@@ -22,7 +22,7 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
     for y in range(len(grid)):
         for x in range(len(grid[y])):
             cell = grid[y][x]
-            print(wall_colour + "+" + CLOSING , end="")
+            print(wall_colour + "+" + CLOSING, end="")
             if cell & 1:
                 print(wall_colour + "--" + CLOSING, end="")
             else:
@@ -34,7 +34,7 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
             if cell & 8:
                 print(wall_colour + "|" + CLOSING, end="")
             else:
-                print(wall_colour + " " + CLOSING, end="")
+                print(" ", end="")
 
             if (x, y) == entry:
                 print(BLUE + "E " + CLOSING, end="")
@@ -46,7 +46,7 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
                 print(GREEN + "# " + CLOSING, end="")
             else:
                 print("  ", end="")
-        print("|")
+        print(wall_colour + "|" + CLOSING)
 
     for x in range(len(grid[0])):
         print(wall_colour + "+--" + CLOSING, end="")
@@ -69,14 +69,18 @@ def preference(maze: MazeGenerator) -> None:
         choice = input("Choice? (1-4): ")
 
         if choice == "1":
-            maze = MazeGenerator(maze.width, maze.height,entry=maze.entry, exit=maze.exit,perfect=maze.perfect)
+            maze = MazeGenerator(
+                maze.width, maze.height,
+                entry=maze.entry, exit=maze.exit,
+                perfect=maze.perfect
+            )
             maze.generate()
         elif choice == "2":
             show_path = not show_path
         elif choice == "3":
             colour_index = (colour_index + 1) % len(WALL_COLOURS)
         elif choice == "4":
-            print("")
+            print("Bye!")
             break
         else:
             print("You entered incorrect information")

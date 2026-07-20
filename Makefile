@@ -5,7 +5,7 @@
 
 PYTHON = python
 # PYTHON = python3
-SRC = main.py
+SRC = ma_maze_ing.py
 CONFIG = default_config.txt
 
 FLAKE8 = flake8 .
