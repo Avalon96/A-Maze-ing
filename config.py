@@ -153,5 +153,5 @@ def validate_parameters() -> str:
     # DEBUG END
 
     if len(sys.argv) != argc:
-        raise ValueError("Usage: python main.py <config_file_path>")
+        raise ValueError("Usage: python a_maze_ing.py <config_file_path>")
     return sys.argv[1]
