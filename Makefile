@@ -5,7 +5,7 @@
 
 PYTHON = python
 # PYTHON = python3
-SRC = ma_maze_ing.py
+SRC = a_maze_ing.py
 CONFIG = default_config.txt
 
 FLAKE8 = flake8 .
@@ -28,9 +28,7 @@ debug:
 	$(PYTHON) -m pdb $(SRC) $(CONFIG)
 
 clean:
-	rmdir /s /q __pycache__
-	rmdir /s /q .mypy_cache
-# 	rm -rf $(CACHE)
+	rm -rf $(CACHE)
 
 lint:
 	$(FLAKE8)
