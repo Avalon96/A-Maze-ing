@@ -1,10 +1,10 @@
 # Windows
 
 # Delete later
-# $(PYTHON) output_validator.py maze.txt
+# $(PYTHON) maze_analyzer.py maze.txt
 
- # PYTHON = python
- PYTHON = python3
+PYTHON = python
+# PYTHON = python3
 SRC = a_maze_ing.py
 CONFIG = default_config.txt
 
@@ -22,7 +22,6 @@ install:
 
 run:
 	$(PYTHON) $(SRC) $(CONFIG)
-	$(PYTHON) output_validator.py maze.txt
 
 debug:
 	$(PYTHON) -m pdb $(SRC) $(CONFIG)
@@ -43,4 +42,5 @@ lint-strict:
 # DEBUG
 run2:
 	$(PYTHON) $(SRC) $(CONFIG) --print-debug
+	$(PYTHON) maze_analyzer.py --max-dead-ends 0 maze.txt
 # DEBUG END

@@ -86,6 +86,11 @@ def preference(maze: MazeGenerator) -> None:
     colour_index = 0
 
     while True:
+        # DEBUG
+        from debug import PRINT_DEBUG
+        if PRINT_DEBUG:
+            return True
+        # DEBUG END
         draw(maze, show_path, WALL_COLOURS[colour_index])
 
         print("=== A-Maze-ing ===")
