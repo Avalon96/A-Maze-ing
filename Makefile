@@ -29,8 +29,8 @@ debug:
 
 clean:
 ifeq ($(OS),Windows_NT)
-	@if exist rmdir /s /q $(PYCACHE)
-	@if exist rmdir /s /q $(MYPY_CACHE)
+	@if exist "$(PYCACHE)" @rmdir /s /q "$(PYCACHE)"
+	@if exist "$(MYPY_CACHE)" @rmdir /s /q "$(MYPY_CACHE)"
 else
 	rm -rf $(PYCACHE) $(MYPY_CACHE)
 endif
