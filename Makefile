@@ -48,3 +48,5 @@ run2:
 	$(PYTHON) $(SRC) $(CONFIG) $(DEBUG)
 	$(PYTHON) maze_analyzer.py --max-dead-ends 0 maze.txt
 # DEBUG END
+
+.PHONY: install run debug clean lint lint-strict run2
