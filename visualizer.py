@@ -108,7 +108,7 @@ def preference(maze: MazeGenerator) -> None:
                 maze = MazeGenerator(
                     maze.width, maze.height,
                     entry=maze.entry, exit_=maze.exit_,
-                    perfect=maze.perfect
+                    perfect=maze.perfect, seed=maze.seed
                 )
                 maze.generate()
             case "2":
