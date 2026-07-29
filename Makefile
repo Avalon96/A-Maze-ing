@@ -1,10 +1,8 @@
-# Windows
+PYTHON = python3
+ifeq ($(OS),Windows_NT)
+	PYTHON = python
+endif
 
-# Delete later
-# $(PYTHON) maze_analyzer.py maze.txt
-
-PYTHON = python
-# PYTHON = python3
 SRC = a_maze_ing.py
 CONFIG = default_config.txt
 
@@ -15,7 +13,10 @@ MYPY = mypy . --warn-return-any \
 --disallow-untyped-defs \
 --check-untyped-defs
 MYPY_STRICT = mypy . --strict
-CACHE = __pycache__ .mypy_cache
+PYCACHE = __pycache__
+MYPY_CACHE = .mypy_cache
+
+DEBUG = --print-debug
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -27,9 +28,12 @@ debug:
 	$(PYTHON) -m pdb $(SRC) $(CONFIG)
 
 clean:
-	rm -rf $(CACHE)
-	# rmdir /s /q __pycache__
-	# rmdir /s /q .mypy_cache
+ifeq ($(OS),Windows_NT)
+	@if exist rmdir /s /q $(PYCACHE)
+	@if exist rmdir /s /q $(MYPY_CACHE)
+else
+	rm -rf $(PYCACHE) $(MYPY_CACHE)
+endif
 
 lint:
 	$(FLAKE8)
@@ -41,6 +45,6 @@ lint-strict:
 
 # DEBUG
 run2:
-	$(PYTHON) $(SRC) $(CONFIG) --print-debug
+	$(PYTHON) $(SRC) $(CONFIG) $(DEBUG)
 	$(PYTHON) maze_analyzer.py --max-dead-ends 0 maze.txt
 # DEBUG END
