@@ -150,7 +150,15 @@ class MazeGenerator:
             )
             print(self.pattern_warning, file=sys.stderr)
         else:
-            blocked_cells = self._build_42_pattern(self.width, self.height)
+            try:
+                blocked_cells = self._build_42_pattern(
+                    self.width, self.height, self.entry, self.exit_
+                )
+            except MazeGenerationError as e:
+                blocked_cells = set()
+                self.pattern_skipped = True
+                self.pattern_warning = f"{e}; generating the maze without it."
+                print(self.pattern_warning, file=sys.stderr)
 
         if self.entry in blocked_cells or self.exit_ in blocked_cells:
             raise MazeGenerationError(
@@ -288,21 +296,79 @@ class MazeGenerator:
             file.write(self.solution() + "\n")
 
     @staticmethod
-    def _build_42_pattern(width: int, height: int) -> set[Coord]:
-        pattern_width = min(width, len(_BASE_42_PATTERN[0]))
-        pattern_height = min(height, len(_BASE_42_PATTERN))
-        offset_x = (width - pattern_width) // 2
-        offset_y = (height - pattern_height) // 2
+    def _build_42_pattern(
+        width: int, height: int, entry: Coord, exit_: Coord
+    ) -> set[Coord]:
+        """Finds a valid placement for the `_BASE_42_PATTERN` in the maze
+        and returns the coordinates of the cells that are blocked by it.
 
-        blocked_cells: set[Coord] = set()
-        for row_index in range(pattern_height):
-            row = _BASE_42_PATTERN[row_index]
-            for col_index in range(pattern_width):
-                if row[col_index] == "#":
-                    blocked_cells.add(
-                        (offset_x + col_index, offset_y + row_index)
-                    )
-        return blocked_cells
+        Parameters
+        ----------
+        width, height:
+            The dimensions of the maze.
+        entry, exit_:
+            The coordinates of the maze entry and exit.
+
+        Returns
+        -------
+        set[tuple[int, int]]
+            The coordinates of the cells that are blocked
+            by the `_BASE_42_PATTERN`
+
+        Raises
+        ------
+        MazeGenerationError
+            If the `_BASE_42_PATTERN` cannot be placed without
+            blocking the entry, exit, or center.
+        """
+        pattern_width: int = min(width, len(_BASE_42_PATTERN[0]))
+        pattern_height: int = min(height, len(_BASE_42_PATTERN))
+
+        key_cells: set[Coord] = {
+            (0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1),
+            (width // 2, height // 2), entry, exit_
+        }
+
+        # DEBUG
+        from debug import PRINT_DEBUG
+        if PRINT_DEBUG:
+            tmp: str = "_build_42_pattern"
+            print(f"{tmp}: Pattern width: {pattern_width}", file=sys.stderr)
+            print(f"{tmp}: Pattern height: {pattern_height}", file=sys.stderr)
+            print(f"{tmp}: Center: {width // 2, height // 2}", file=sys.stderr)
+        # DEBUG END
+
+        offsets: list[tuple[int, int, int]] = []
+        for y in range(height - pattern_height + 1):
+            for x in range(width - pattern_width + 1):
+                center_x: int = x + pattern_width // 2
+                center_y: int = y + pattern_height // 2
+
+                dist: int = \
+                    abs(center_x - width // 2) + abs(center_y - height // 2)
+                offsets.append((dist, x, y))
+
+        offsets.sort(key=lambda item: item[0])
+
+        # DEBUG
+        from debug import PRINT_DEBUG
+        if PRINT_DEBUG:
+            print(f"{tmp}: Offsets: {offsets}", file=sys.stderr)
+        # DEBUG END
+
+        for _, x, y in offsets:
+            blocked_cells: set[Coord] = set()
+            for row_index in range(pattern_height):
+                row: str = _BASE_42_PATTERN[row_index]
+                for col_index in range(pattern_width):
+                    if row[col_index] == "#":
+                        blocked_cells.add((x + col_index, y + row_index))
+            if not (blocked_cells & key_cells):
+                return blocked_cells
+
+        raise MazeGenerationError(
+            "42 pattern cannot be placed without blocking entry/exit/center"
+        )
 
     @staticmethod
     def _generate_connected_maze(
@@ -381,44 +447,115 @@ class MazeGenerator:
     def _add_extra_opening(
         cls, grid: Grid, blocked_cells: set[Coord], seed: int
     ) -> None:
-        height = len(grid)
-        width = len(grid[0])
-        candidates: list[tuple[int, int, int, int, Direction, Direction]] = []
+        """Remove some extra walls to reduce dead ends in the maze.
 
-        for y in range(height):
-            for x in range(width):
-                if (x, y) in blocked_cells:
+        Repeatedly scans the grid for "dead end" cells (cells with exactly
+        three closed walls) and, where possible, knocks down one of their
+        walls into an unblocked neighbour. A candidate wall is only removed
+        if doing so does not create a fully open 3x3 area in the grid.
+        If fewer than two walls could be removed via dead ends,
+        falls back to trying random east/west openings between arbitrary
+        adjacent cells until at least two walls have been removed
+        (or no valid candidates remain). The grid is mutated in place.
+
+        Parameters
+        ----------
+        grid:
+            The maze grid to modify in place.
+        blocked_cells:
+            The coordinates of cells blocked by the `_BASE_42_PATTERN`;
+            these are never modified or used as neighbours.
+        seed:
+            The random seed (XORed with a fixed constant) used to make the
+            extra-opening process reproducible and independent from the
+            seed used for the initial maze generation.
+        """
+        height: int = len(grid)
+        width: int = len(grid[0])
+        rng: random.Random = random.Random(seed ^ 0x9E3779B9)
+
+        def get_real_dead_ends() -> list[DeadEnd]:
+            """Find all dead ends that can potentially be connected
+            to a valid neighbour.
+            """
+            dead_ends: list[DeadEnd] = []
+            for y in range(height):
+                for x in range(width):
+                    if (x, y) in blocked_cells:
+                        continue
+
+                    if bin(grid[y][x] & 0xF).count("1") == 3:
+                        openable: OpenableWalls = []
+                        for dx, dy, wall, opposite_wall, _ in _DIRECTIONS:
+                            if grid[y][x] & wall:
+                                nx, ny = x + dx, y + dy
+                                if 0 <= nx < width and 0 <= ny < height:
+                                    if (nx, ny) not in blocked_cells:
+                                        openable.append(
+                                            (nx, ny, wall, opposite_wall)
+                                        )
+                        if openable:
+                            dead_ends.append((x, y, openable))
+            return dead_ends
+
+        walls_removed: int = 0
+
+        while True:
+            dead_ends = get_real_dead_ends()
+            if not dead_ends:
+                break
+
+            rng.shuffle(dead_ends)
+            changed: bool = False
+
+            for x, y, openable in dead_ends:
+                if bin(grid[y][x] & 0xF).count("1") != 3:
                     continue
-                for dx, dy, wall, opposite_wall, _ in _DIRECTIONS[1:3]:
-                    neighbour_x = x + dx
-                    neighbour_y = y + dy
-                    if not (
-                        0 <= neighbour_x < width and 0 <= neighbour_y < height
-                    ):
+
+                rng.shuffle(openable)
+                for nx, ny, wall, opposite_wall in openable:
+                    grid[y][x] &= ~wall
+                    grid[ny][nx] &= ~opposite_wall
+
+                    if cls._has_three_by_three_open_area(grid):
+                        grid[y][x] |= wall
+                        grid[ny][nx] |= opposite_wall
+                    else:
+                        changed = True
+                        walls_removed += 1
+                        break
+
+            if not changed:
+                break
+
+        if walls_removed < 2:
+            candidates: Candidate = []
+            for y in range(height):
+                for x in range(width):
+                    if (x, y) in blocked_cells:
                         continue
-                    if (neighbour_x, neighbour_y) in blocked_cells:
-                        continue
-                    if (
-                        grid[y][x] & wall
-                        and grid[neighbour_y][neighbour_x] & opposite_wall
-                    ):
-                        candidates.append((
-                            x, y, neighbour_x, neighbour_y, wall, opposite_wall
-                        ))
+                    for dx, dy, wall, opposite_wall, _ in _DIRECTIONS[1:3]:
+                        if grid[y][x] & wall:
+                            nx, ny = x + dx, y + dy
+                            if 0 <= nx < width and 0 <= ny < height:
+                                if (nx, ny) not in blocked_cells:
+                                    candidates.append(
+                                        (x, y, nx, ny, wall, opposite_wall)
+                                    )
 
-        if not candidates:
-            return
+            rng.shuffle(candidates)
+            for x, y, nx, ny, wall, opposite_wall in candidates:
+                if walls_removed >= 2:
+                    break
 
-        rng = random.Random(seed ^ 0x9E3779B9)
-        rng.shuffle(candidates)
+                grid[y][x] &= ~wall
+                grid[ny][nx] &= ~opposite_wall
 
-        for x, y, neighbour_x, neighbour_y, wall, opposite_wall in candidates:
-            grid[y][x] &= ~wall
-            grid[neighbour_y][neighbour_x] &= ~opposite_wall
-            if not cls._has_three_by_three_open_area(grid):
-                return
-            grid[y][x] |= wall
-            grid[neighbour_y][neighbour_x] |= opposite_wall
+                if cls._has_three_by_three_open_area(grid):
+                    grid[y][x] |= wall
+                    grid[ny][nx] |= opposite_wall
+                else:
+                    walls_removed += 1
 
     @staticmethod
     def _has_three_by_three_open_area(grid: Grid) -> bool:
