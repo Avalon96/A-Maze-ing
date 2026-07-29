@@ -4,9 +4,6 @@ import sys
 from collections import deque
 from enum import IntFlag
 
-Coord = tuple[int, int]
-Grid = list[list[int]]
-
 
 class MazeGenerationError(ValueError):
     """Raised when a maze cannot be generated with the given parameters."""
@@ -36,6 +33,12 @@ _BASE_42_PATTERN: tuple[str, ...] = (
     "..#.#..",
     "..#.###",
 )
+
+Coord = tuple[int, int]
+Grid = list[list[int]]
+DeadEnd = tuple[int, int, list[tuple[int, int, Direction, Direction]]]
+OpenableWalls = list[tuple[int, int, Direction, Direction]]
+Candidate = list[tuple[int, int, int, int, Direction, Direction]]
 
 
 class MazeGenerator:
@@ -83,41 +86,21 @@ class MazeGenerator:
         seed: int | None = None,
         perfect: bool = True
     ) -> None:
-        self.width = self._as_int(width, "width")
-        self.height = self._as_int(height, "height")
-        self.entry = self._normalize_coord(
-            entry if entry is not None else (0, 0), "entry")
-        self.exit_ = self._normalize_coord(
-            exit_ if exit_ is not None else (self.width - 1, self.height - 1),
-            "exit",
-        )
+        self.width = width
+        self.height = height
+        self.entry = entry
+        self.exit_ = exit_
         self.seed = (
-            self._as_int(seed, "seed")
-            if seed is not None
+            seed if seed is not None
             else random.randint(1, 2**31 - 1)
         )
-        self.perfect = bool(perfect)
+        self.perfect = perfect
 
         self._grid: Grid | None = None
         self._path: str | None = None
         self._blocked_cells: set[Coord] = set()
         self.pattern_skipped: bool = False
         self.pattern_warning: str | None = None
-
-    @staticmethod
-    def _as_int(value: object, name: str) -> int:
-        if isinstance(value, bool) or not isinstance(value, (str, int)):
-            raise ValueError(f"{name} must be a string or integer")
-        return int(value)
-
-    @staticmethod
-    def _normalize_coord(value: object, name: str) -> Coord:
-        if not isinstance(value, tuple) or len(value) != 2:
-            raise ValueError(f"{name} must be a 2-tuple of integers")
-        x, y = value
-        if not isinstance(x, int) or not isinstance(y, int):
-            raise ValueError(f"{name} coordinates must be integers")
-        return x, y
 
     def _validate(self) -> None:
         if self.width < 1 or self.height < 1:
@@ -271,29 +254,6 @@ class MazeGenerator:
             x, y = x + dx, y + dy
             coords.append((x, y))
         return coords
-
-    def to_dict(self) -> dict:
-        """Return the full maze structure as a plain ``dict``.
-
-        Returns
-        -------
-        dict
-            A dictionary containing the maze parameters, grid, blocked
-            cells, solution, and pattern status flags.
-        """
-        return {
-            "width": self.width,
-            "height": self.height,
-            "seed": self.seed,
-            "perfect": self.perfect,
-            "entry": self.entry,
-            "exit": self.exit_,
-            "grid": [row[:] for row in self.grid],
-            "blocked_cells": sorted(self.blocked_cells),
-            "solution": self.solution(),
-            "pattern_skipped": self.pattern_skipped,
-            "pattern_warning": self.pattern_warning,
-        }
 
     def save(self, output_file: str) -> None:
         """Write the maze to `output_file` using the reference text
