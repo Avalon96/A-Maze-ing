@@ -94,6 +94,8 @@ def preference(maze: MazeGenerator) -> None:
         draw(maze, show_path, WALL_COLOURS[colour_index])
 
         print("=== A-Maze-ing ===")
+        print(f"Seed: {maze.seed}\n")
+        
         print("1. Re-generate a new maze")
         print("2. Show / Hide the shortest path")
         print("3. Rotate the wall colours")
@@ -101,22 +103,23 @@ def preference(maze: MazeGenerator) -> None:
 
         choice = input("Choice? (1-4): ")
 
-        if choice == "1":
-            maze = MazeGenerator(
-                maze.width, maze.height,
-                entry=maze.entry, exit=maze.exit,
-                perfect=maze.perfect
-            )
-            maze.generate()
-        elif choice == "2":
-            show_path = not show_path
-        elif choice == "3":
-            colour_index = (colour_index + 1) % len(WALL_COLOURS)
-        elif choice == "4":
-            print("Bye!")
-            break
-        else:
-            print("You entered incorrect information")
+        match choice:
+            case "1":
+                maze = MazeGenerator(
+                    maze.width, maze.height,
+                    entry=maze.entry, exit=maze.exit,
+                    perfect=maze.perfect
+                )
+                maze.generate()
+            case "2":
+                show_path = not show_path
+            case "3":
+                colour_index = (colour_index + 1) % len(WALL_COLOURS)
+            case "4":
+                print("Bye!")
+                break
+            case _:
+                print("You entered incorrect information")
 
 
 if __name__ == "__main__":
