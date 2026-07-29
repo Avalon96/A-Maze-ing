@@ -56,9 +56,8 @@ class MazeGenerator:
         chosen automatically.
     perfect:
         If ``True`` (the default) the maze is "perfect": there is
-        exactly one path between any two cells. If ``False``, one extra
-        wall is knocked down (when possible) to create a loop, without
-        creating any open 3x3 area.
+        exactly one path between any two cells. If ``False``, all 
+        dead-ends are removed and at least two loops are added.
 
     Raises
     ------
@@ -80,7 +79,7 @@ class MazeGenerator:
         height: int,
         *,
         entry: Coord | None = None,
-        exit: Coord | None = None,
+        exit_: Coord | None = None,
         seed: int | None = None,
         perfect: bool = True
     ) -> None:
@@ -88,8 +87,8 @@ class MazeGenerator:
         self.height = self._as_int(height, "height")
         self.entry = self._normalize_coord(
             entry if entry is not None else (0, 0), "entry")
-        self.exit = self._normalize_coord(
-            exit if exit is not None else (self.width - 1, self.height - 1),
+        self.exit_ = self._normalize_coord(
+            exit_ if exit_ is not None else (self.width - 1, self.height - 1),
             "exit",
         )
         self.seed = (
@@ -123,13 +122,13 @@ class MazeGenerator:
     def _validate(self) -> None:
         if self.width < 1 or self.height < 1:
             raise MazeGenerationError("Maze dimensions must be positive")
-        for name, point in (("entry", self.entry), ("exit", self.exit)):
+        for name, point in (("entry", self.entry), ("exit", self.exit_)):
             x, y = point
             if not (0 <= x < self.width and 0 <= y < self.height):
                 raise MazeGenerationError(
                     f"{name} must be inside the maze bounds"
                 )
-        if self.entry == self.exit:
+        if self.entry == self.exit_:
             raise MazeGenerationError("entry and exit must be different")
 
     def generate(self) -> MazeGenerator:
@@ -169,7 +168,7 @@ class MazeGenerator:
         else:
             blocked_cells = self._build_42_pattern(self.width, self.height)
 
-        if self.entry in blocked_cells or self.exit in blocked_cells:
+        if self.entry in blocked_cells or self.exit_ in blocked_cells:
             raise MazeGenerationError(
                 "entry and exit must not be inside the 42 pattern"
             )
@@ -182,7 +181,7 @@ class MazeGenerator:
 
         self._blocked_cells = blocked_cells
         self._grid = grid
-        self._path = self._shortest_path(grid, self.entry, self.exit)
+        self._path = self._shortest_path(grid, self.entry, self.exit_)
         return self
 
     @property
@@ -225,7 +224,7 @@ class MazeGenerator:
         return self._blocked_cells
 
     def solution(self) -> str:
-        """Return the shortest path from ``entry`` to ``exit``.
+        """Return the shortest path from ``entry`` to ``exit_``.
 
         Returns
         -------
@@ -240,7 +239,7 @@ class MazeGenerator:
 
         The result is a string of direction letters (``N``, ``E``,
         ``S``, ``W``), e.g. ``"EESSW"``, describing the moves to take
-        from ``entry`` to reach ``exit``. Generates the maze
+        from ``entry`` to reach ``exit_``. Generates the maze
         automatically on first access.
         """
         if self._path is None:
@@ -255,9 +254,9 @@ class MazeGenerator:
         -------
         list[tuple[int, int]]
             The path coordinates, starting with ``entry`` and ending
-            with ``exit``.
+            with ``exit_``.
 
-        The list starts at ``entry`` and ends at ``exit`` (inclusive),
+        The list starts at ``entry`` and ends at ``exit_`` (inclusive),
         using the same coordinate order as the constructor and the
         in-memory maze representation.
         """
@@ -285,7 +284,7 @@ class MazeGenerator:
             "seed": self.seed,
             "perfect": self.perfect,
             "entry": self.entry,
-            "exit": self.exit,
+            "exit": self.exit_,
             "grid": [row[:] for row in self.grid],
             "blocked_cells": sorted(self.blocked_cells),
             "solution": self.solution(),
@@ -322,7 +321,7 @@ class MazeGenerator:
                 file.write("".join(f"{cell:X}" for cell in row) + "\n")
             file.write("\n")
             file.write(f"{self.entry[0]},{self.entry[1]}\n")
-            file.write(f"{self.exit[0]},{self.exit[1]}\n")
+            file.write(f"{self.exit_[0]},{self.exit_[1]}\n")
             file.write(self.solution() + "\n")
 
     @staticmethod

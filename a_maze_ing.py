@@ -30,7 +30,7 @@ def build_generator(
         width=cast(int, config["WIDTH"]),
         height=cast(int, config["HEIGHT"]),
         entry=cast(tuple[int, int], config["ENTRY"]),
-        exit=cast(tuple[int, int], config["EXIT"]),
+        exit_=cast(tuple[int, int], config["EXIT"]),
         seed=seed,
         perfect=cast(bool, config["PERFECT"]),
     )

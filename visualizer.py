@@ -31,7 +31,7 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
     """
     grid = maze.grid
     entry = maze.entry
-    cell_exit = maze.exit
+    cell_exit = maze.exit_
     solution_path = maze.solution_coords()
     cell_blocked = maze.blocked_cells
 
@@ -107,7 +107,7 @@ def preference(maze: MazeGenerator) -> None:
             case "1":
                 maze = MazeGenerator(
                     maze.width, maze.height,
-                    entry=maze.entry, exit=maze.exit,
+                    entry=maze.entry, exit_=maze.exit_,
                     perfect=maze.perfect
                 )
                 maze.generate()
@@ -123,6 +123,6 @@ def preference(maze: MazeGenerator) -> None:
 
 
 if __name__ == "__main__":
-    m = MazeGenerator(20, 15, entry=(0, 0), exit=(19, 14), seed=42)
+    m = MazeGenerator(20, 15, entry=(0, 0), exit_=(19, 14), seed=42)
     m.generate()
     preference(m)
