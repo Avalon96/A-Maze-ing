@@ -46,8 +46,8 @@ class MazeGenerator:
     width, height:
         Size of the maze, in cells. Both must be positive integers.
     entry, exit:
-        ``(x, y)`` coordinates (0-indexed, ``x`` is the column and ``y``
-        is the row) of the maze entrance and exit. They must lie inside
+        `(x, y)` coordinates (0-indexed, `x` is the column and `y`
+        is the row) of the maze entry and exit. They must lie inside
         the maze bounds and be different from each other.
     seed:
         Optional integer used to seed the internal random number
@@ -55,8 +55,8 @@ class MazeGenerator:
         always produces the same maze. If omitted, a random seed is
         chosen automatically.
     perfect:
-        If ``True`` (the default) the maze is "perfect": there is
-        exactly one path between any two cells. If ``False``, all 
+        If `True` (the default) the maze is "perfect": there is
+        exactly one path between any two cells. If `False`, all
         dead-ends are removed and at least two loops are added.
 
     Raises
@@ -67,7 +67,7 @@ class MazeGenerator:
 
     Notes
     -----
-    Very small mazes may skip the ``42`` pattern entirely when the fixed
+    Very small mazes may skip the `_BASE_42_PATTERN` entirely when the fixed
     pattern would not fit without breaking connectivity.
 
     The maze is not generated until `generate` is called.
@@ -78,8 +78,8 @@ class MazeGenerator:
         width: int,
         height: int,
         *,
-        entry: Coord | None = None,
-        exit_: Coord | None = None,
+        entry: Coord,
+        exit_: Coord,
         seed: int | None = None,
         perfect: bool = True
     ) -> None:
@@ -123,7 +123,8 @@ class MazeGenerator:
         if self.width < 1 or self.height < 1:
             raise MazeGenerationError("Maze dimensions must be positive")
         for name, point in (("entry", self.entry), ("exit", self.exit_)):
-            x, y = point
+            x: int = point[0]
+            y: int = point[1]
             if not (0 <= x < self.width and 0 <= y < self.height):
                 raise MazeGenerationError(
                     f"{name} must be inside the maze bounds"
@@ -144,8 +145,8 @@ class MazeGenerator:
         MazeGenerationError
             If the maze dimensions are invalid, the entry or exit is
             outside the maze, the entry and exit are identical, the
-            42 pattern cannot fit, or no valid path exists between the
-            entry and exit.
+            `_BASE_42_PATTERN` cannot be placed, or no valid path exists
+            between the entry and exit.
         """
         self._validate()
 
@@ -186,7 +187,12 @@ class MazeGenerator:
 
     @property
     def grid(self) -> Grid:
-        """The maze as a 2D list of ints (``grid[y][x]``).
+        """The maze as a 2D list of ints (`grid[y][x]`).
+
+        Each cell is a bitmask of :class:`Direction` flags indicating
+        which walls are present (1=North, 2=East, 4=South, 8=West;
+        e.g. `0xF`/15 means all four walls are closed).
+        Generates the maze automatically on first access.
 
         Returns
         -------
@@ -199,10 +205,6 @@ class MazeGenerator:
         MazeGenerationError
             If the maze cannot be generated for the current settings.
 
-        Each cell is a bitmask of :class:`Direction` flags indicating
-        which walls are present (1=North, 2=East, 4=South, 8=West;
-        e.g. ``0xF``/15 means all four walls are closed).
-        Generates the maze automatically on first access.
         """
         if self._grid is None:
             self.generate()
@@ -211,7 +213,8 @@ class MazeGenerator:
 
     @property
     def blocked_cells(self) -> set[Coord]:
-        """Coordinates reserved by the carved "42" pattern, if one was used.
+        """Coordinates reserved by the carved `_BASE_42_PATTERN`,
+        if one was used.
 
         Returns
         -------
@@ -224,12 +227,16 @@ class MazeGenerator:
         return self._blocked_cells
 
     def solution(self) -> str:
-        """Return the shortest path from ``entry`` to ``exit_``.
+        """Return the shortest path from `entry` to `exit_`.
+
+        The result is a string of direction letters (`N`, `E`, `S`, `W`),
+        e.g. `"EESSW"`, describing the moves to take from `entry` to `exit_`.
+        Generates the maze automatically on first access.
 
         Returns
         -------
         str
-            A string of direction letters (``N``, ``E``, ``S``, ``W``)
+            A string of direction letters (`N`, `E`, `S`, `W`)
             describing the shortest path.
 
         Raises
@@ -237,10 +244,6 @@ class MazeGenerator:
         MazeGenerationError
             If the maze cannot be generated or no path exists.
 
-        The result is a string of direction letters (``N``, ``E``,
-        ``S``, ``W``), e.g. ``"EESSW"``, describing the moves to take
-        from ``entry`` to reach ``exit_``. Generates the maze
-        automatically on first access.
         """
         if self._path is None:
             self.generate()
@@ -248,15 +251,15 @@ class MazeGenerator:
         return self._path
 
     def solution_coords(self) -> list[Coord]:
-        """Return the solution path as a list of ``(x, y)`` coordinates.
+        """Return the solution path as a list of `(x, y)` coordinates.
 
         Returns
         -------
         list[tuple[int, int]]
-            The path coordinates, starting with ``entry`` and ending
-            with ``exit_``.
+            The path coordinates, starting with `entry` and ending
+            with `exit_`.
 
-        The list starts at ``entry`` and ends at ``exit_`` (inclusive),
+        The list starts at `entry` and ends at `exit_` (inclusive),
         using the same coordinate order as the constructor and the
         in-memory maze representation.
         """
@@ -293,7 +296,7 @@ class MazeGenerator:
         }
 
     def save(self, output_file: str) -> None:
-        """Write the maze to ``output_file`` using the reference text
+        """Write the maze to `output_file` using the reference text
         format: one hex digit per cell (row by row), a blank line, the
         entry coordinates, the exit coordinates, and the solution path.
 
@@ -312,7 +315,7 @@ class MazeGenerator:
         OSError
             If the file cannot be opened or written.
 
-        Coordinates are written as ``x,y`` to match the generator's
+        Coordinates are written as `x,y` to match the generator's
         internal coordinate order.
         """
         grid = self.grid
@@ -345,6 +348,29 @@ class MazeGenerator:
     def _generate_connected_maze(
         width: int, height: int, blocked_cells: set[Coord], seed: int
     ) -> Grid:
+        """Generate a perfect maze using a DFS algorithm.
+
+        Parameters
+        ----------
+        width, height:
+            The dimensions of the maze.
+        blocked_cells:
+            The coordinates of the cells that are blocked by the
+            `_BASE_42_PATTERN`.
+        seed:
+            The random seed for reproducible maze generation.
+
+        Returns
+        -------
+        Grid
+            The generated maze grid, where each cell stores
+            closed walls as a bitmask.
+
+        Raises
+        ------
+        MazeGenerationError
+            If the maze cannot be generated due to the blocked cells
+        """
         grid: Grid = [[0xF for _ in range(width)] for _ in range(height)]
         allowed_cells: set[Coord] = {
             (x, y)
@@ -436,17 +462,35 @@ class MazeGenerator:
 
     @staticmethod
     def _has_three_by_three_open_area(grid: Grid) -> bool:
-        height = len(grid)
-        width = len(grid[0])
+        """Check whether the grid contains a fully open 3x3 block of cells.
+
+        A 3x3 area is considered "fully open" when every internal wall
+        between its cells (both horizontal, i.e. east/west, and vertical,
+        i.e. north/south) has been removed, meaning a player could move
+        freely within that 3x3 block in any direction.
+
+        Parameters
+        ----------
+        grid:
+            The maze grid to inspect.
+
+        Returns
+        -------
+        bool
+            True if any 3x3 fully open area exists in the grid,
+            False otherwise.
+        """
+        height: int = len(grid)
+        width: int = len(grid[0])
 
         for top in range(height - 2):
             for left in range(width - 2):
-                fully_open = True
+                fully_open: bool = True
 
                 for row in range(3):
                     for col in range(2):
-                        cell = grid[top + row][left + col]
-                        neighbour = grid[top + row][left + col + 1]
+                        cell: int = grid[top + row][left + col]
+                        neighbour: int = grid[top + row][left + col + 1]
                         if cell & Direction.EAST or neighbour & Direction.WEST:
                             fully_open = False
                             break
@@ -476,8 +520,32 @@ class MazeGenerator:
 
     @staticmethod
     def _shortest_path(grid: Grid, entry: Coord, exit_: Coord) -> str:
-        height = len(grid)
-        width = len(grid[0])
+        """Find the shortest path between two cells using a BFS algorithm.
+
+        Parameters
+        ----------
+        grid:
+            The maze grid to search, where each cell stores closed walls
+            as a bitmask.
+        entry:
+            The coordinate of the starting cell.
+        exit_:
+            The coordinate of the destination cell.
+
+        Returns
+        -------
+        str
+            The sequence of direction letters (as defined by `_DIRECTIONS`)
+            describing the shortest path from `entry` to `exit_`. Returns
+            an empty string if `entry` equals `exit_`.
+
+        Raises
+        ------
+        MazeGenerationError
+            If no path exists between `entry` and `exit_`.
+        """
+        height: int = len(grid)
+        width: int = len(grid[0])
         queue: deque[Coord] = deque([entry])
         previous: dict[Coord, tuple[Coord, str]] = {}
         seen: set[Coord] = {entry}

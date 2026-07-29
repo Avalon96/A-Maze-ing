@@ -89,13 +89,13 @@ def preference(maze: MazeGenerator) -> None:
         # DEBUG
         from debug import PRINT_DEBUG
         if PRINT_DEBUG:
-            return True
+            return
         # DEBUG END
         draw(maze, show_path, WALL_COLOURS[colour_index])
 
         print("=== A-Maze-ing ===")
         print(f"Seed: {maze.seed}\n")
-        
+
         print("1. Re-generate a new maze")
         print("2. Show / Hide the shortest path")
         print("3. Rotate the wall colours")
