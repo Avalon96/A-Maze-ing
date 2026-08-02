@@ -29,6 +29,9 @@ Another advantage is that the algorithm is deterministic when combined with a se
 
 The algorithm is also flexible enough to support additional constraints, such as blocked cells created by the 42 pattern.
 
+# Instructions
+→→→ *Write how to install the package and use it*
+
 ## Reusable Code
 
 The main reusable component of this project is the `MazeGenerator` class.
@@ -42,10 +45,15 @@ It provides a configurable interface for generating mazes with different:
 Example:
 
 ```python
-(Code snippet for how to use)
-```
-# Instructions
+config_file_path = validate_parameters()
+config = read_config_file(config_file_path)
+validate_config(config)
 
+maze = build_generator(config)
+maze.generate()
+maze.save(config["OUTPUT_FILE"])
+preference(maze)
+```
 
 ## Config File Format
 
@@ -65,16 +73,30 @@ Available options:
 * [geeksforgeeks - DFS](https://www.geeksforgeeks.org/dsa/depth-first-search-or-dfs-for-a-graph/)
 * [geeksforgeeks - BFS](https://www.geeksforgeeks.org/dsa/breadth-first-search-or-bfs-for-a-graph/)
 * [PEP 257 – Docstring Conventions NumPy](https://numpydoc.readthedocs.io/en/latest/format.html)
+* [Python Packaging User Guide](https://packaging.python.org/en/latest/tutorials/packaging-projects/)
 
 AI was used to help choose algorithms, keep docstrings consistent with NumPy conventions, and identify edge cases for more robust error handling.
 
-## TBD
-• What part of your code is reusable, and how.
+# Team & Project Management
 
-    • Your team and project management with:
+## Team Roles
+We divided the project to ensure we could work efficiently in parallel:
+* **aunverdi**: Core Logic & Algorithms. Responsible for implementing the maze generation algorithms, the shortest-path finding logic, and data parsing.
+* **bepolat**: Quality Assurance, Visualization & Architecture. Responsible for rigorous code testing, the visual rendering of the mazes, and structuring the project into a distributable package.
 
-        ◦ The roles of each team member.
+## Planning & Evolution
+**Initial Plan:**
+Initially, our timeline was structured around a sequential hand-off: aunverdi would rapidly develop the maze generation, allowing bepolat to research and implement the shortest-path algorithms. We planned to divide the remaining tasks organically once these core components were functional.
 
-        ◦ Your anticipated planning and how it evolved until the end
+**How it Evolved:**
+As development progressed, we realized that the algorithms for maze generation and path resolution shared significant foundational logic. To capitalize on this and avoid redundant work, aunverdi took ownership of both algorithms, as well as the parsing logic required to test them. 
 
-        ◦ What worked well and what could be improved
+This pivot shifted bepolat's focus. He took charge of Quality Assurance—testing the core logic for edge cases and faults—before moving on to handle the remaining architectural requirements: building the visual representation and packaging the project for distribution.
+
+## Retrospective
+**What Worked Well:**
+* **Clear Architecture:** The strict separation of algorithmic logic and visual rendering allowed us to develop and test our components independently without causing merge conflicts.
+* **Continuous Integration:** We tested the code regularly to ensure new commits didn't break existing functionality, which kept the codebase stable.
+
+**What Could Be Improved:**
+* **Time Estimation:** We underestimated the overall scope and time required to finish the project. This led to a tighter schedule than anticipated and left us with less buffer time to comfortably finalize everything at the end.
