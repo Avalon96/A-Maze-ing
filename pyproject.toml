@@ -1,2 +1,13 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
 [project]
+name = "mazegen"
+version = "1.0.0"
+description = "A-Maze-ing: a reusable maze generator (DFS generation + BFS solver)"
 requires-python = ">=3.10"
+license = { file = "LICENSE.md" }
+
+[tool.setuptools]
+py-modules = ["maze_generator"]
