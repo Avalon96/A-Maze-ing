@@ -29,15 +29,15 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
     wall_colour : str
         The colour used for the walls.
     """
-    grid = maze.grid
-    entry = maze.entry
-    cell_exit = maze.exit_
-    solution_path = maze.solution_coords()
-    cell_blocked = maze.blocked_cells
+    grid: list[list[int]] = maze.grid
+    entry: tuple[int, int] = maze.entry
+    cell_exit: tuple[int, int] = maze.exit_
+    solution_path: list[tuple[int, int]] = maze.solution_coords()
+    cell_blocked: set[tuple[int, int]] = maze.blocked_cells
 
     for y in range(len(grid)):
         for x in range(len(grid[y])):
-            cell = grid[y][x]
+            cell: int = grid[y][x]
             print(wall_colour + "+" + CLOSING, end="")
             if cell & 1:
                 print(wall_colour + "--" + CLOSING, end="")
@@ -82,8 +82,9 @@ def preference(maze: MazeGenerator) -> None:
         The maze we start with. If the user picks "1", a new one takes
         its place with the same size and the same entry and exit.
     """
-    show_path = True
-    colour_index = 0
+    show_path: bool = True
+    colour_index: int = 0
+    needs_redraw: bool = True
 
     while True:
         # DEBUG
@@ -91,38 +92,81 @@ def preference(maze: MazeGenerator) -> None:
         if PRINT_DEBUG:
             return
         # DEBUG END
-        draw(maze, show_path, WALL_COLOURS[colour_index])
+        if needs_redraw:
+            draw(maze, show_path, WALL_COLOURS[colour_index])
 
-        print("=== A-Maze-ing ===")
-        print(f"Seed: {maze.seed}\n")
+            print("=== A-Maze-ing ===")
+            print(f"Seed: {maze.seed}\n")
 
-        print("1. Re-generate a new maze")
-        print("2. Show / Hide the shortest path")
-        print("3. Rotate the wall colours")
-        print("4. Quit")
+            print("1. Generate a random new maze")
+            print("2. Generate a maze with given seed")
+            print("3. Generate a maze with given dimensions")
+            print("4. Show / Hide the shortest path")
+            print("5. Rotate the wall colours")
+            print("6. Quit")
 
-        choice = input("Choice? (1-4): ")
+        choice = input("Choice? (1-6): ")
 
         match choice:
             case "1":
                 maze = MazeGenerator(
                     maze.width, maze.height,
                     entry=maze.entry, exit_=maze.exit_,
-                    perfect=maze.perfect, seed=maze.seed
+                    perfect=maze.perfect
                 )
                 maze.generate()
+                needs_redraw = True
             case "2":
-                show_path = not show_path
+                while True:
+                    try:
+                        seed = int(input("Enter the seed for the new maze: "))
+                        break
+                    except ValueError:
+                        print("Invalid seed. Please enter a valid integer.")
+                maze = MazeGenerator(
+                    maze.width, maze.height,
+                    entry=maze.entry, exit_=maze.exit_,
+                    perfect=maze.perfect, seed=seed
+                )
+                maze.generate()
+                needs_redraw = True
             case "3":
-                colour_index = (colour_index + 1) % len(WALL_COLOURS)
+                while True:
+                    try:
+                        width, height = map(int, input(
+                            "Enter the width and height (W, H): ").split(",")
+                        )
+                        entry = (0, 0)
+                        exit_ = (width - 1, height - 1)
+                        break
+                    except ValueError:
+                        print("Invalid dimensions.")
+                maze = MazeGenerator(
+                    width, height,
+                    entry=entry, exit_=exit_,
+                    perfect=maze.perfect
+                )
+                maze.generate()
+                needs_redraw = True
             case "4":
+                show_path = not show_path
+                needs_redraw = True
+            case "5":
+                colour_index = (colour_index + 1) % len(WALL_COLOURS)
+                needs_redraw = True
+            case "6":
                 print("Bye!")
+                needs_redraw = False
                 break
             case _:
-                print("You entered incorrect information")
+                print("Invalid choice.")
+                needs_redraw = False
+                continue
 
 
 if __name__ == "__main__":
-    m = MazeGenerator(20, 15, entry=(0, 0), exit_=(19, 14), seed=42)
+    m: MazeGenerator = MazeGenerator(
+        20, 15, entry=(0, 0), exit_=(19, 14), seed=42
+    )
     m.generate()
     preference(m)
