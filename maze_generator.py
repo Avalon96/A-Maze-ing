@@ -394,16 +394,18 @@ class MazeGenerator:
                 "Maze cannot be entirely occupied by the 42 pattern"
             )
 
-        rng = random.Random(seed)
-        start = min(allowed_cells)
+        rng: random.Random = random.Random(seed)
+        start: Coord = min(allowed_cells)
         stack: list[Coord] = [start]
         visited: set[Coord] = {start}
 
         while stack:
+            x: int
+            y: int
             x, y = stack[-1]
             neighbours: list[tuple[Coord, Direction, Direction]] = []
             for dx, dy, wall, opposite_wall, _ in _DIRECTIONS:
-                neighbour = (x + dx, y + dy)
+                neighbour: Coord = (x + dx, y + dy)
                 if neighbour in allowed_cells and neighbour not in visited:
                     neighbours.append((neighbour, wall, opposite_wall))
 
@@ -412,6 +414,8 @@ class MazeGenerator:
                 continue
 
             neighbour, wall, opposite_wall = rng.choice(neighbours)
+            nx: int
+            ny: int
             nx, ny = neighbour
             grid[y][x] &= ~wall
             grid[ny][nx] &= ~opposite_wall
@@ -473,7 +477,8 @@ class MazeGenerator:
                         openable: OpenableWalls = []
                         for dx, dy, wall, opposite_wall, _ in _DIRECTIONS:
                             if grid[y][x] & wall:
-                                nx, ny = x + dx, y + dy
+                                nx: int = x + dx
+                                ny: int = y + dy
                                 if 0 <= nx < width and 0 <= ny < height:
                                     if (nx, ny) not in blocked_cells:
                                         openable.append(
@@ -633,23 +638,23 @@ class MazeGenerator:
         seen: set[Coord] = {entry}
 
         while queue:
+            x: int
+            y: int
             x, y = queue.popleft()
             if (x, y) == exit_:
                 break
 
-            cell_walls = grid[y][x]
+            cell_walls: int = grid[y][x]
             for dx, dy, wall, opposite_wall, letter in _DIRECTIONS:
                 if cell_walls & wall:
                     continue
-                neighbour_x = x + dx
-                neighbour_y = y + dy
-                if not (
-                    0 <= neighbour_x < width and 0 <= neighbour_y < height
-                ):
+                nx: int = x + dx
+                ny: int = y + dy
+                if not (0 <= nx < width and 0 <= ny < height):
                     continue
-                if grid[neighbour_y][neighbour_x] & opposite_wall:
+                if grid[ny][nx] & opposite_wall:
                     continue
-                neighbour = (neighbour_x, neighbour_y)
+                neighbour: Coord = (nx, ny)
                 if neighbour in seen:
                     continue
                 seen.add(neighbour)
@@ -662,7 +667,7 @@ class MazeGenerator:
             )
 
         path_letters: list[str] = []
-        current = exit_
+        current: Coord = exit_
         while current != entry:
             current, letter = previous[current]
             path_letters.append(letter)

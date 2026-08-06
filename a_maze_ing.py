@@ -7,17 +7,17 @@ from config import (
     validate_config,
     validate_parameters
 )
-from maze_generator import MazeGenerator, MazeGenerationError
+from maze_generator import Coord, MazeGenerator, MazeGenerationError
 
 
 def build_generator(
-        config: dict[str, str | int | tuple[int, int] | bool]
+        config: dict[str, str | int | Coord | bool]
         ) -> MazeGenerator:
     """Build a MazeGenerator from the parsed configuration.
 
     Parameters
     ----------
-    config : dict[str, str | int | tuple[int, int] | bool]
+    config : dict[str, str | int | Coord | bool]
         Configuration values already validated by `validate_config`.
 
     Returns
@@ -29,25 +29,25 @@ def build_generator(
     return MazeGenerator(
         width=cast(int, config["WIDTH"]),
         height=cast(int, config["HEIGHT"]),
-        entry=cast(tuple[int, int], config["ENTRY"]),
-        exit_=cast(tuple[int, int], config["EXIT"]),
-        seed=seed,
+        entry=cast(Coord, config["ENTRY"]),
+        exit_=cast(Coord, config["EXIT"]),
         perfect=cast(bool, config["PERFECT"]),
+        seed=seed
     )
 
 
 def main() -> None:
     """Read the config, build the maze, save it and show the viewer."""
     try:
-        config_file_path: str = validate_parameters()
-        config: dict[str, str | int | tuple[int, int] | bool] = \
-            read_config_file(config_file_path)
+        path: str = validate_parameters()
+        config: dict[str, str | int | Coord | bool] = read_config_file(path)
         validate_config(config)
+        output_file: str = cast(str, config["OUTPUT_FILE"])
 
         maze: MazeGenerator = build_generator(config)
         maze.generate()
-        maze.save(cast(str, config["OUTPUT_FILE"]))
-        preference(maze)
+        maze.save(output_file)
+        preference(maze, output_file)
     except (ValueError, FileNotFoundError, OSError, MazeGenerationError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
