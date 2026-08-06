@@ -1,7 +1,7 @@
 import sys
 from typing import cast
-from visualizer import preference
 
+from visualizer import preference
 from config import (
     read_config_file,
     validate_config,

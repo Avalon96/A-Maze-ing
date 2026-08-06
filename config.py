@@ -1,4 +1,5 @@
 import sys
+from maze_generator import Coord
 
 CONFIG_KEYS_INT: tuple[str, str, str] = ("WIDTH", "HEIGHT", "SEED")
 CONFIG_KEYS_COORD: tuple[str, str] = ("ENTRY", "EXIT")
@@ -14,7 +15,7 @@ MANDATORY_CONFIG_KEYS: dict[tuple[str, ...], type] = {
 
 def read_config_file(
         file_path: str
-        ) -> dict[str, str | int | tuple[int, int] | bool]:
+        ) -> dict[str, str | int | Coord | bool]:
     """Read a config file and return parsed configuration parameters.
 
     The file is expected to contain lines in the format "KEY=VALUE".
@@ -33,7 +34,7 @@ def read_config_file(
 
     Returns
     -------
-    dict[str, str | int | tuple[int, int] | bool]
+    dict[str, str | int | Coord | bool]
         Mapping of configuration keys to their parsed values.
 
     Raises
@@ -49,7 +50,7 @@ def read_config_file(
         If a line is malformed (missing "=") or a value cannot be
         converted to its expected type.
     """
-    config: dict[str, str | int | tuple[int, int] | bool] = {}
+    config: dict[str, str | int | Coord | bool] = {}
     try:
         with open(file_path, 'r') as file:
             for line_num, line in enumerate(file, start=1):
@@ -90,7 +91,7 @@ def read_config_file(
 
 
 def validate_config(
-        config: dict[str, str | int | tuple[int, int] | bool]
+        config: dict[str, str | int | Coord | bool]
         ) -> None:
     """Validate that all mandatory configuration keys are present
     and typed correctly.
@@ -100,7 +101,7 @@ def validate_config(
 
     Parameters
     ----------
-    config : dict[str, str | int | tuple[int, int] | bool]
+    config : dict[str, str | int | Coord | bool]
         The parsed configuration dictionary, as returned by
         `read_config_file`.
 

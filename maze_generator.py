@@ -1,41 +1,9 @@
 """Reusable maze generation module.
 
-This file is the installable library surface for the project. It exposes the
-MazeGenerator class to build and solve mazes for external Python projects.
+Provides the MazeGenerator class for generating and solving mazes
+using DFS-based generation and BFS-based pathfinding.
 
-Parameters
-----------
-width: int
-    Width of the maze in cells.
-height: int
-    Height of the maze in cells.
-entry: tuple of int
-    Starting (x, y) coordinates inside the maze.
-exit_: tuple of int
-    Ending (x, y) coordinates inside the maze.
-perfect: bool, default=True
-    If True, generates a perfect maze (one path between any two cells).
-    If False, adds extra loop openings.
-seed: int or None, Optional
-    Seed for the random number generator to ensure deterministic output.
-
-Attributes
-----------
-grid : list of list of int
-    The in-memory maze structure where each cell is an integer bitmask
-    representing Direction walls.
-
-Examples
---------
->>> from maze_generator import MazeGenerator
->>> generator = MazeGenerator(width=10, height=8, entry=(0, 0), exit_=(9, 7), seed=42)
->>> generator.generate()
->>> generator.save("my_maze.txt")
-
-Notes
------
-The text-file format produced by `save()` is separate from the in-memory
-structure and is intended for file export rather than direct code reuse.
+This module is intended to be imported as a library in other Python projects.
 """
 
 from __future__ import annotations
@@ -88,32 +56,39 @@ class MazeGenerator:
 
     Parameters
     ----------
-    width, height:
+    width, height : int
         Size of the maze, in cells. Both must be positive integers.
-    entry, exit:
-        `(x, y)` coordinates (0-indexed, `x` is the column and `y`
-        is the row) of the maze entry and exit. They must lie inside
-        the maze bounds and be different from each other.
-    seed:
+    entry, exit_ : Coord
+        The (x, y) coordinates of the maze entry and exit. Both must be
+        inside the maze bounds and different from each other.
+    perfect : bool, default=True
+        If `True` (the default) the maze is "perfect": there is
+        exactly one path between any two cells. If `False`, all
+        dead-ends are removed and at least two loops are added.
+    seed : int, optional
         Optional integer used to seed the internal random number
         generator. Using the same seed (and the same other parameters)
         always produces the same maze. If omitted, a random seed is
         chosen automatically.
-    perfect:
-        If `True` (the default) the maze is "perfect": there is
-        exactly one path between any two cells. If `False`, all
-        dead-ends are removed and at least two loops are added.
 
-    Raises
-    ------
-    ValueError
-        If width, height, entry, exit, or seed cannot be converted to
-        valid values.
+    Examples
+    --------
+    >>> from maze_generator import MazeGenerator
+    >>> generator = MazeGenerator(
+    ...     width=10,
+    ...     height=8,
+    ...     entry=(0, 0),
+    ...     exit_=(9, 7),
+    ...     perfect=True,
+    ...     seed=42
+    ... )
+    >>> generator.generate()
+    >>> generator.save("my_maze.txt")
 
     Notes
     -----
-    Very small mazes may skip the `_BASE_42_PATTERN` entirely when the fixed
-    pattern would not fit without breaking connectivity.
+    Mazes may skip the built-in pattern when it cannot fit
+    without breaking connectivity.
 
     The maze is not generated until `generate` is called.
     """
@@ -310,7 +285,7 @@ class MazeGenerator:
 
         Parameters
         ----------
-        output_file:
+        output_file : str
             Path to the file that should receive the maze text format.
 
         Returns
@@ -344,9 +319,9 @@ class MazeGenerator:
 
         Parameters
         ----------
-        width, height:
+        width, height : int
             The dimensions of the maze.
-        entry, exit_:
+        entry, exit_ : Coord
             The coordinates of the maze entry and exit.
 
         Returns
@@ -404,12 +379,12 @@ class MazeGenerator:
 
         Parameters
         ----------
-        width, height:
+        width, height : int
             The dimensions of the maze.
-        blocked_cells:
+        blocked_cells : set[Coord]
             The coordinates of the cells that are blocked by the
             `_BASE_42_PATTERN`.
-        seed:
+        seed : int
             The random seed for reproducible maze generation.
 
         Returns
@@ -484,12 +459,12 @@ class MazeGenerator:
 
         Parameters
         ----------
-        grid:
+        grid : Grid
             The maze grid to modify in place.
-        blocked_cells:
+        blocked_cells : set[Coord]
             The coordinates of cells blocked by the `_BASE_42_PATTERN`;
             these are never modified or used as neighbours.
-        seed:
+        seed : int
             The random seed (XORed with a fixed constant) used to make the
             extra-opening process reproducible and independent from the
             seed used for the initial maze generation.
@@ -593,7 +568,7 @@ class MazeGenerator:
 
         Parameters
         ----------
-        grid:
+        grid : Grid
             The maze grid to inspect.
 
         Returns
@@ -646,12 +621,12 @@ class MazeGenerator:
 
         Parameters
         ----------
-        grid:
+        grid : Grid
             The maze grid to search, where each cell stores closed walls
             as a bitmask.
-        entry:
+        entry : Coord
             The coordinate of the starting cell.
-        exit_:
+        exit_ : Coord
             The coordinate of the destination cell.
 
         Returns
