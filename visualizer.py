@@ -69,7 +69,7 @@ def draw(maze: MazeGenerator, show_path: bool, wall_colour: str) -> None:
     print(wall_colour + "+" + CLOSING)
 
 
-def preference(maze: MazeGenerator) -> None:
+def preference(maze: MazeGenerator, output_file: str) -> None:
     """Show the menu and keep asking the user what to do.
 
     The maze is drawn first, then the menu appears. The user can ask
@@ -81,6 +81,8 @@ def preference(maze: MazeGenerator) -> None:
     maze : MazeGenerator
         The maze we start with. If the user picks "1", a new one takes
         its place with the same size and the same entry and exit.
+    output_file : str
+        The file where the maze is saved after every change.
     """
     show_path: bool = True
     colour_index: int = 0
@@ -89,6 +91,7 @@ def preference(maze: MazeGenerator) -> None:
     while True:
         if needs_redraw:
             draw(maze, show_path, WALL_COLOURS[colour_index])
+            maze.save(output_file)
 
             print("=== A-Maze-ing ===")
             print(f"Seed: {maze.seed}\n")
@@ -105,7 +108,7 @@ def preference(maze: MazeGenerator) -> None:
         match choice:
             case "1":
                 maze = MazeGenerator(
-                    maze.width, maze.height,
+                    width=maze.width, height=maze.height,
                     entry=maze.entry, exit_=maze.exit_,
                     perfect=maze.perfect
                 )
@@ -119,7 +122,7 @@ def preference(maze: MazeGenerator) -> None:
                     except ValueError:
                         print("Invalid seed. Please enter a valid integer.")
                 maze = MazeGenerator(
-                    maze.width, maze.height,
+                    width=maze.width, height=maze.height,
                     entry=maze.entry, exit_=maze.exit_,
                     perfect=maze.perfect, seed=seed
                 )
@@ -137,7 +140,7 @@ def preference(maze: MazeGenerator) -> None:
                     except ValueError:
                         print("Invalid dimensions.")
                 maze = MazeGenerator(
-                    width, height,
+                    width=width, height=height,
                     entry=entry, exit_=exit_,
                     perfect=maze.perfect
                 )
@@ -157,11 +160,3 @@ def preference(maze: MazeGenerator) -> None:
                 print("Invalid choice.")
                 needs_redraw = False
                 continue
-
-
-if __name__ == "__main__":
-    m: MazeGenerator = MazeGenerator(
-        20, 15, entry=(0, 0), exit_=(19, 14), seed=42
-    )
-    m.generate()
-    preference(m)
