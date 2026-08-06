@@ -78,13 +78,13 @@ class MazeGenerator:
 
     def __init__(
         self,
+        *,
         width: int,
         height: int,
-        *,
         entry: Coord,
         exit_: Coord,
-        seed: int | None = None,
-        perfect: bool = True
+        perfect: bool = True,
+        seed: int | None = None
     ) -> None:
         self.width = width
         self.height = height
@@ -137,8 +137,8 @@ class MazeGenerator:
         self.pattern_warning = None
 
         if (
-            self.width <= len(_BASE_42_PATTERN[0])
-            or self.height <= len(_BASE_42_PATTERN)
+            self.width < len(_BASE_42_PATTERN[0])
+            or self.height < len(_BASE_42_PATTERN)
         ):
             blocked_cells: set[Coord] = set()
             self.pattern_skipped = True
@@ -194,12 +194,6 @@ class MazeGenerator:
         list[list[int]]
             The generated maze grid, where each cell stores closed
             walls as a bitmask.
-
-        Raises
-        ------
-        MazeGenerationError
-            If the maze cannot be generated for the current settings.
-
         """
         if self._grid is None:
             self.generate()
@@ -424,8 +418,9 @@ class MazeGenerator:
             stack.append(neighbour)
 
         if visited != allowed_cells:
-            raise MazeGenerationError(
-                "42 pattern disconnects the maze at the chosen size"
+            blocked_cells.clear()
+            return MazeGenerator._generate_connected_maze(
+                width, height, blocked_cells, seed
             )
 
         return grid
