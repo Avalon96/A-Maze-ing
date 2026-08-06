@@ -1,8 +1,50 @@
+"""Reusable maze generation module.
+
+This file is the installable library surface for the project. It exposes the
+MazeGenerator class to build and solve mazes for external Python projects.
+
+Parameters
+----------
+width: int
+    Width of the maze in cells.
+height: int
+    Height of the maze in cells.
+entry: tuple of int
+    Starting (x, y) coordinates inside the maze.
+exit_: tuple of int
+    Ending (x, y) coordinates inside the maze.
+perfect: bool, default=True
+    If True, generates a perfect maze (one path between any two cells).
+    If False, adds extra loop openings.
+seed: int or None, Optional
+    Seed for the random number generator to ensure deterministic output.
+
+Attributes
+----------
+grid : list of list of int
+    The in-memory maze structure where each cell is an integer bitmask
+    representing Direction walls.
+
+Examples
+--------
+>>> from maze_generator import MazeGenerator
+>>> generator = MazeGenerator(width=10, height=8, entry=(0, 0), exit_=(9, 7), seed=42)
+>>> generator.generate()
+>>> generator.save("my_maze.txt")
+
+Notes
+-----
+The text-file format produced by `save()` is separate from the in-memory
+structure and is intended for file export rather than direct code reuse.
+"""
+
 from __future__ import annotations
 import random
 import sys
 from collections import deque
 from enum import IntFlag
+
+__all__ = ["MazeGenerator", "MazeGenerationError"]
 
 
 class MazeGenerationError(ValueError):
@@ -152,7 +194,7 @@ class MazeGenerator:
             print(self.pattern_warning, file=sys.stderr)
         else:
             try:
-                blocked_cells = self._build_42_pattern(
+                blocked_cells = self.build_42_pattern(
                     self.width, self.height, self.entry, self.exit_
                 )
             except MazeGenerationError as e:
@@ -161,7 +203,7 @@ class MazeGenerator:
                 self.pattern_warning = f"Warning: {e}"
                 print(self.pattern_warning, file=sys.stderr)
 
-        grid = self._generate_connected_maze(
+        grid = self.generate_connected_maze(
             self.width, self.height, blocked_cells, self.seed
         )
         if not blocked_cells and not self.pattern_skipped:
@@ -173,11 +215,11 @@ class MazeGenerator:
             )
             print(self.pattern_warning, file=sys.stderr)
         if not self.perfect:
-            self._add_extra_opening(grid, blocked_cells, self.seed)
+            self.add_extra_opening(grid, blocked_cells, self.seed)
 
         self._blocked_cells = blocked_cells
         self._grid = grid
-        self._path = self._shortest_path(grid, self.entry, self.exit_)
+        self._path = self.shortest_path(grid, self.entry, self.exit_)
         return self
 
     @property
@@ -191,7 +233,7 @@ class MazeGenerator:
 
         Returns
         -------
-        list[list[int]]
+        Grid
             The generated maze grid, where each cell stores closed
             walls as a bitmask.
         """
@@ -207,7 +249,7 @@ class MazeGenerator:
 
         Returns
         -------
-        set[tuple[int, int]]
+        set[Coord]
             The coordinates kept fully closed by the pattern, or an
             empty set if the pattern was skipped.
         """
@@ -244,7 +286,7 @@ class MazeGenerator:
 
         Returns
         -------
-        list[tuple[int, int]]
+        list[Coord]
             The path coordinates, starting with `entry` and ending
             with `exit_`.
 
@@ -294,7 +336,7 @@ class MazeGenerator:
             file.write(self.solution() + "\n")
 
     @staticmethod
-    def _build_42_pattern(
+    def build_42_pattern(
         width: int, height: int, entry: Coord, exit_: Coord
     ) -> set[Coord]:
         """Finds a valid placement for the `_BASE_42_PATTERN` in the maze
@@ -309,7 +351,7 @@ class MazeGenerator:
 
         Returns
         -------
-        set[tuple[int, int]]
+        set[Coord]
             The coordinates of the cells that are blocked
             by the `_BASE_42_PATTERN`
 
@@ -355,7 +397,7 @@ class MazeGenerator:
         )
 
     @staticmethod
-    def _generate_connected_maze(
+    def generate_connected_maze(
         width: int, height: int, blocked_cells: set[Coord], seed: int
     ) -> Grid:
         """Generate a perfect maze using a DFS algorithm.
@@ -419,14 +461,14 @@ class MazeGenerator:
 
         if visited != allowed_cells:
             blocked_cells.clear()
-            return MazeGenerator._generate_connected_maze(
+            return MazeGenerator.generate_connected_maze(
                 width, height, blocked_cells, seed
             )
 
         return grid
 
     @classmethod
-    def _add_extra_opening(
+    def add_extra_opening(
         cls, grid: Grid, blocked_cells: set[Coord], seed: int
     ) -> None:
         """Remove some extra walls to reduce dead ends in the maze.
@@ -500,7 +542,7 @@ class MazeGenerator:
                     grid[y][x] &= ~wall
                     grid[ny][nx] &= ~opposite_wall
 
-                    if cls._has_three_by_three_open_area(grid):
+                    if cls.has_three_by_three_open_area(grid):
                         grid[y][x] |= wall
                         grid[ny][nx] |= opposite_wall
                     else:
@@ -534,14 +576,14 @@ class MazeGenerator:
                 grid[y][x] &= ~wall
                 grid[ny][nx] &= ~opposite_wall
 
-                if cls._has_three_by_three_open_area(grid):
+                if cls.has_three_by_three_open_area(grid):
                     grid[y][x] |= wall
                     grid[ny][nx] |= opposite_wall
                 else:
                     walls_removed += 1
 
     @staticmethod
-    def _has_three_by_three_open_area(grid: Grid) -> bool:
+    def has_three_by_three_open_area(grid: Grid) -> bool:
         """Check whether the grid contains a fully open 3x3 block of cells.
 
         A 3x3 area is considered "fully open" when every internal wall
@@ -599,7 +641,7 @@ class MazeGenerator:
         return False
 
     @staticmethod
-    def _shortest_path(grid: Grid, entry: Coord, exit_: Coord) -> str:
+    def shortest_path(grid: Grid, entry: Coord, exit_: Coord) -> str:
         """Find the shortest path between two cells using a BFS algorithm.
 
         Parameters
