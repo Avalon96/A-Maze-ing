@@ -329,14 +329,6 @@ class MazeGenerator:
             (width // 2, height // 2), entry, exit_
         }
 
-        
-        PRINT_DEBUG = "--print-debug" in sys.argv
-        if PRINT_DEBUG:
-            tmp: str = "_build_42_pattern"
-            print(f"{tmp}: Pattern width: {pattern_width}", file=sys.stderr)
-            print(f"{tmp}: Pattern height: {pattern_height}", file=sys.stderr)
-            print(f"{tmp}: Center: {width // 2, height // 2}", file=sys.stderr)
-
         offsets: list[tuple[int, int, int]] = []
         for y in range(height - pattern_height + 1):
             for x in range(width - pattern_width + 1):
@@ -348,10 +340,6 @@ class MazeGenerator:
                 offsets.append((dist, x, y))
 
         offsets.sort(key=lambda item: item[0])
-
-        if PRINT_DEBUG:
-            print(f"{tmp}: Offsets: {offsets}", file=sys.stderr)
-        
 
         for _, x, y in offsets:
             blocked_cells: set[Coord] = set()

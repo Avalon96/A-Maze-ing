@@ -1,3 +1,5 @@
+.PHONY: install run debug clean lint lint-strict analyze
+
 PYTHON = python3
 ifeq ($(OS),Windows_NT)
 	PYTHON = python
@@ -8,15 +10,16 @@ CONFIG = default_config.txt
 
 FLAKE8 = flake8 .
 MYPY = mypy . --warn-return-any \
---warn-unused-ignores \
---ignore-missing-imports \
---disallow-untyped-defs \
---check-untyped-defs
+	--warn-unused-ignores \
+	--ignore-missing-imports \
+	--disallow-untyped-defs \
+	--check-untyped-defs
 MYPY_STRICT = mypy . --strict
 PYCACHE = __pycache__
 MYPY_CACHE = .mypy_cache
-
-DEBUG = --print-debug
+OUTPUT = maze.txt
+ANALYZER = maze_analyzer.py
+BONUS = --max-dead-ends 0
 
 install:
 	$(PYTHON) -m pip install -r requirements.txt
@@ -29,10 +32,11 @@ debug:
 
 clean:
 ifeq ($(OS),Windows_NT)
-	@if exist "$(PYCACHE)" @rmdir /s /q "$(PYCACHE)"
-	@if exist "$(MYPY_CACHE)" @rmdir /s /q "$(MYPY_CACHE)"
+	@if exist "$(PYCACHE)" rmdir /s /q "$(PYCACHE)"
+	@if exist "$(MYPY_CACHE)" rmdir /s /q "$(MYPY_CACHE)"
 else
-	rm -rf $(PYCACHE) $(MYPY_CACHE)
+	find . -type d -name "$(PYCACHE)" -exec rm -rf {} +
+	find . -type d -name "$(MYPY_CACHE)" -exec rm -rf {} +
 endif
 
 lint:
@@ -43,10 +47,5 @@ lint-strict:
 	$(FLAKE8)
 	$(MYPY_STRICT)
 
-# DEBUG
-run2:
-	$(PYTHON) $(SRC) $(CONFIG) $(DEBUG)
-	$(PYTHON) maze_analyzer.py --max-dead-ends 0 maze.txt
-# DEBUG END
-
-.PHONY: install run debug clean lint lint-strict run2
+analyze: run
+	$(PYTHON) $(ANALYZER) $(BONUS) $(OUTPUT)

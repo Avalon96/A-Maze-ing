@@ -52,14 +52,6 @@ def main() -> None:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # DEBUG
-    from debug import PRINT_DEBUG
-    if PRINT_DEBUG:
-        for key, value in config.items():
-            print(f"main: {key}: {value}")
-        print()
-    # DEBUG END
-
 
 if __name__ == "__main__":
     main()

@@ -87,11 +87,6 @@ def preference(maze: MazeGenerator) -> None:
     needs_redraw: bool = True
 
     while True:
-        # DEBUG
-        from debug import PRINT_DEBUG
-        if PRINT_DEBUG:
-            return
-        # DEBUG END
         if needs_redraw:
             draw(maze, show_path, WALL_COLOURS[colour_index])
 

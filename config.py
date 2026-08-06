@@ -53,13 +53,6 @@ def read_config_file(
     try:
         with open(file_path, 'r') as file:
             for line_num, line in enumerate(file, start=1):
-
-                # DEBUG
-                from debug import PRINT_DEBUG
-                if PRINT_DEBUG:
-                    print(f"read_config_file: line {line_num}: {line.strip()}")
-                # DEBUG END
-
                 line = line.strip()
                 if not line or line.startswith('#'):
                     continue
@@ -119,13 +112,6 @@ def validate_config(
     """
     for key_group, expected_type in MANDATORY_CONFIG_KEYS.items():
         for key in key_group:
-
-            # DEBUG
-            from debug import PRINT_DEBUG
-            if PRINT_DEBUG:
-                print(f"validate_config: {key} = {config.get(key)}")
-            # DEBUG END
-
             if key not in config:
                 raise ValueError(f"Missing mandatory configuration key: {key}")
             if not isinstance(config[key], expected_type):
@@ -150,11 +136,6 @@ def validate_parameters() -> str:
         If the script was not invoked with exactly one command-line
         argument.
     """
-    # DEBUG
-    from debug import PRINT_DEBUG
-    argc: int = 2 + PRINT_DEBUG
-    # DEBUG END
-
-    if len(sys.argv) != argc:
+    if len(sys.argv) != 2:
         raise ValueError("Usage: python a_maze_ing.py <config_file_path>")
     return sys.argv[1]
