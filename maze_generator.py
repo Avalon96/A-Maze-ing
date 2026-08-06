@@ -143,6 +143,7 @@ class MazeGenerator:
             blocked_cells: set[Coord] = set()
             self.pattern_skipped = True
             self.pattern_warning = (
+                "Warning: "
                 f"Maze is {self.width}x{self.height}, which is too small to "
                 f"fit the {len(_BASE_42_PATTERN[0])}x{len(_BASE_42_PATTERN)} "
                 "\"42\" pattern and create a connected maze; "
@@ -157,17 +158,20 @@ class MazeGenerator:
             except MazeGenerationError as e:
                 blocked_cells = set()
                 self.pattern_skipped = True
-                self.pattern_warning = f"{e}; generating the maze without it."
+                self.pattern_warning = f"Warning: {e}"
                 print(self.pattern_warning, file=sys.stderr)
-
-        if self.entry in blocked_cells or self.exit_ in blocked_cells:
-            raise MazeGenerationError(
-                "entry and exit must not be inside the 42 pattern"
-            )
 
         grid = self._generate_connected_maze(
             self.width, self.height, blocked_cells, self.seed
         )
+        if not blocked_cells and not self.pattern_skipped:
+            self.pattern_skipped = True
+            self.pattern_warning = (
+                "Warning: "
+                "42 pattern disconnects the maze at the chosen size; "
+                "generating the maze without it."
+            )
+            print(self.pattern_warning, file=sys.stderr)
         if not self.perfect:
             self._add_extra_opening(grid, blocked_cells, self.seed)
 
@@ -321,8 +325,8 @@ class MazeGenerator:
             If the `_BASE_42_PATTERN` cannot be placed without
             blocking the entry, exit, or center.
         """
-        pattern_width: int = min(width, len(_BASE_42_PATTERN[0]))
-        pattern_height: int = min(height, len(_BASE_42_PATTERN))
+        pattern_width: int = len(_BASE_42_PATTERN[0])
+        pattern_height: int = len(_BASE_42_PATTERN)
 
         key_cells: set[Coord] = {
             (0, 0), (width - 1, 0), (0, height - 1), (width - 1, height - 1),
@@ -352,7 +356,8 @@ class MazeGenerator:
                 return blocked_cells
 
         raise MazeGenerationError(
-            "42 pattern cannot be placed without blocking entry/exit/center"
+            "42 pattern cannot be placed without blocking entry/exit/center; "
+            "generating the maze without it."
         )
 
     @staticmethod
@@ -389,10 +394,6 @@ class MazeGenerator:
             for x in range(width)
             if (x, y) not in blocked_cells
         }
-        if not allowed_cells:
-            raise MazeGenerationError(
-                "Maze cannot be entirely occupied by the 42 pattern"
-            )
 
         rng: random.Random = random.Random(seed)
         start: Coord = min(allowed_cells)
@@ -426,9 +427,6 @@ class MazeGenerator:
             raise MazeGenerationError(
                 "42 pattern disconnects the maze at the chosen size"
             )
-
-        for blocked_x, blocked_y in blocked_cells:
-            grid[blocked_y][blocked_x] = 0xF
 
         return grid
 
@@ -473,7 +471,7 @@ class MazeGenerator:
                     if (x, y) in blocked_cells:
                         continue
 
-                    if bin(grid[y][x] & 0xF).count("1") == 3:
+                    if (grid[y][x] & 0xF).bit_count() == 3:
                         openable: OpenableWalls = []
                         for dx, dy, wall, opposite_wall, _ in _DIRECTIONS:
                             if grid[y][x] & wall:
@@ -499,7 +497,7 @@ class MazeGenerator:
             changed: bool = False
 
             for x, y, openable in dead_ends:
-                if bin(grid[y][x] & 0xF).count("1") != 3:
+                if (grid[y][x] & 0xF).bit_count() != 3:
                     continue
 
                 rng.shuffle(openable)
