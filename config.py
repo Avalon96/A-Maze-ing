@@ -64,9 +64,24 @@ def read_config_file(
                 key, _, raw_value = line.partition('=')
                 key = key.strip()
                 value = raw_value.strip()
+                if '#' in key:
+                    raise ValueError(
+                        f"Invalid key '{key}' on line {line_num}: "
+                        f"'#' must start a comment line"
+                    )
+                if key in config:
+                    raise ValueError(
+                        f"Duplicate key '{key}' on line {line_num}"
+                    )
                 try:
                     if key in CONFIG_KEYS_INT:
-                        config[key] = int(value)
+                        parsed = int(value)
+                        if key in ("WIDTH", "HEIGHT") and \
+                                not (1 <= parsed <= 1000):
+                            raise ValueError(
+                                f"{key}={parsed} out of range (1-1000)"
+                            )
+                        config[key] = parsed
                     elif key in CONFIG_KEYS_COORD:
                         parts = value.split(',')
                         if len(parts) != 2:
