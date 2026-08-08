@@ -78,9 +78,7 @@ def read_config_file(
                         parsed = int(value)
                         if key in ("WIDTH", "HEIGHT") and \
                                 not (1 <= parsed <= 1000):
-                            raise ValueError(
-                                f"{key}={parsed} out of range (1-1000)"
-                            )
+                            raise ValueError
                         config[key] = parsed
                     elif key in CONFIG_KEYS_COORD:
                         parts = value.split(',')
@@ -91,7 +89,10 @@ def read_config_file(
                             int(parts[1].strip())
                         )
                     elif key in CONFIG_KEYS_BOOL:
-                        config[key] = value.lower() == 'true'
+                        if value not in ('True', 'False'):
+                            raise ValueError
+                        else:
+                            config[key] = value == 'True'
                     else:
                         config[key] = value
                 except ValueError as e:

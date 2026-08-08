@@ -30,8 +30,32 @@ Another advantage is that the algorithm is deterministic when combined with a se
 The algorithm is also flexible enough to support additional constraints, such as blocked cells created by the 42 pattern.
 
 # Instructions
-→→→ *Write how to install the package and use it*
 
+## Installation
+Creating a virtual environment is optional.
+
+```bash
+python -m venv .venv
+source .venv/bin/activate
+python -m pip install mazegen-1.0.0-py3-none-any.whl
+python -m pip show mazegen
+```
+
+## How to Use
+```python
+    # Example
+    from maze_generator import MazeGenerator
+    generator = MazeGenerator(
+        width=10,
+        height=8,
+        entry=(0, 0),
+        exit_=(9, 7),
+        perfect=True,
+        seed=42
+    )
+    generator.generate()
+    generator.save("my_maze.txt")
+```
 ## Reusable Code
 
 The main reusable component of this project is the `MazeGenerator` class.
@@ -42,18 +66,6 @@ It provides a configurable interface for generating mazes with different:
 - random seeds
 - generation modes
 
-Example:
-
-```python
-config_file_path = validate_parameters()
-config = read_config_file(config_file_path)
-validate_config(config)
-
-maze = build_generator(config)
-maze.generate()
-maze.save(config["OUTPUT_FILE"])
-preference(maze)
-```
 
 ## Config File Format
 
